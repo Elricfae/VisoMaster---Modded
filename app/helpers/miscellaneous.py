@@ -39,9 +39,11 @@ def get_scaling_transforms():
     t384 = v2.Resize((384, 384), interpolation=v2.InterpolationMode.BILINEAR, antialias=False)
     t256 = v2.Resize((256, 256), interpolation=v2.InterpolationMode.BILINEAR, antialias=False)
     t128 = v2.Resize((128, 128), interpolation=v2.InterpolationMode.BILINEAR, antialias=False)
-    return t512, t384, t256, t128  
+    t256_face = v2.Resize((256, 256), interpolation=v2.InterpolationMode.BILINEAR, antialias=False)
 
-t512, t384, t256, t128 = get_scaling_transforms()
+    return t512, t384, t256, t128, t256_face
+
+t512, t384, t256, t128, t256_face = get_scaling_transforms()
 
 def absoluteFilePaths(directory: str, include_subfolders=False):
     if include_subfolders:
