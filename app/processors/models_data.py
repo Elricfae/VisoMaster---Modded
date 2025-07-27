@@ -1,4 +1,6 @@
-models_dir = './model_assets'
+from pathlib import Path
+
+models_dir = str(Path(__file__).resolve().parent.parent.parent / 'model_assets') # More robust path
 assets_repo = "https://github.com/visomaster/visomaster-assets/releases/download"
 
 try:
@@ -45,10 +47,9 @@ arcface_mapping_model_dict = {
     'InStyleSwapper256 Version C': 'Inswapper128ArcFace',
     'DeepFaceLive (DFM)': 'Inswapper128ArcFace',
     'SimSwap512': 'SimSwapArcFace',
-    'GhostFace-v1': 'GhostArcFace',
-    'GhostFace-v2': 'GhostArcFace',
-    'GhostFace-v3': 'GhostArcFace',
-    'CSCS': 'CSCSArcFace',
+    'Hyperswap256 Version A': 'Inswapper128ArcFace',
+    'Hyperswap256 Version B': 'Inswapper128ArcFace',
+    'Hyperswap256 Version C': 'Inswapper128ArcFace',
 }
 
 detection_model_mapping = {
@@ -67,8 +68,6 @@ landmark_model_mapping = {
     '203': 'FaceLandmark203',
     '478': 'FaceLandmark478',
 }
-
-
 
 models_list = [
     {
@@ -107,32 +106,22 @@ models_list = [
 
     },
     {
-        "model_name": "GhostFacev1",
-        "local_path": f"{models_dir}/ghost_unet_1_block.onnx",
-        "hash": "304a86bccb325e7fcf5ab4f4f84ba5172e319bccc9de15d299bb436746e2e024",
-        "url": f"{assets_repo}/v0.1.0/ghost_unet_1_block.onnx"
-
+        "model_name": "Hyperswap256 Version A",
+        "local_path": f"{models_dir}/Hyperswap256_Version_A.onnx",
+        "hash": f"{models_dir}/hyperswap_1a_256.hash",
+        "url": f"{assets_repo}/v0.1.0/Hyperswap256_Version_A.onnx"
     },
     {
-        "model_name": "GhostFacev2",
-        "local_path": f"{models_dir}/ghost_unet_2_block.onnx",
-        "hash": "25b72c107aabe27fc65ac5bf5377e58eda0929872d4dd3de5d5a9edefc49fa9f",
-        "url": f"{assets_repo}/v0.1.0/ghost_unet_2_block.onnx"
-
+        "model_name": "Hyperswap256 Version B",
+        "local_path": f"{models_dir}/Hyperswap256_Version_B.onnx",
+        "hash": f"{models_dir}/hyperswap_1b_256.hash",
+        "url": f"{assets_repo}/v0.1.0/Hyperswap256_Version_B.onnx"
     },
     {
-        "model_name": "GhostFacev3",
-        "local_path": f"{models_dir}/ghost_unet_3_block.onnx",
-        "hash": "f471d4f322903da2bca360aa0d7ab9922e3b0001d683f825ca6b15d865382935",
-        "url": f"{assets_repo}/v0.1.0/ghost_unet_3_block.onnx"
-
-    },
-    {
-        "model_name": "CSCS",
-        "local_path": f"{models_dir}/cscs_256.onnx",
-        "hash": "664f8f7cab655b825fe8cf57ab90bfbcbb0acf75eab8e7771c824f18bdb28b67",
-        "url": f"{assets_repo}/v0.1.0/cscs_256.onnx"
-
+        "model_name": "Hyperswap256 Version C",
+        "local_path": f"{models_dir}/Hyperswap256_Version_C.onnx",
+        "hash": f"{models_dir}/hyperswap_1c_256.hash",
+        "url": f"{assets_repo}/v0.1.0/Hyperswap256_Version_C.onnx"
     },
     {
         "model_name": "RetinaFace",
@@ -153,13 +142,6 @@ models_list = [
         "local_path": f"{models_dir}/yoloface_8n.onnx",
         "hash": "84d5bb985b0ea75fc851d7454483897b1494c71c211759b4fec3a22ac196d206",
         "url": f"{assets_repo}/v0.1.0/yoloface_8n.onnx"
-    },
-    {
-        "model_name": "YunetN",
-        "local_path": f"{models_dir}/yunet_n_640_640.onnx",
-        "hash": "9e65c0213faef0173a3d2e05156b4bf44a45cde598bdabb69203da4a6b7ad61e",
-        "url": f"{assets_repo}/v0.1.0/yunet_n_640_640.onnx"
-
     },
     {
         "model_name": "FaceLandmark5",
@@ -232,31 +214,17 @@ models_list = [
 
     },
     {
-        "model_name": "GhostArcFace",
-        "local_path": f"{models_dir}/ghost_arcface_backbone.onnx",
-        "hash": "18bb8057d1cd3ca39411b8a4dde485fa55783e08ceecaf2352f551ca39cd1357",
-        "url": f"{assets_repo}/v0.1.0/ghost_arcface_backbone.onnx"
-
-    },
-    {
-        "model_name": "CSCSArcFace",
-        "local_path": f"{models_dir}/cscs_arcface_model.onnx",
-        "hash": "cd81a1745a736402d100d32c362918aee46d9a3f58c9c5ecbf0e415cf2df9dc0",
-        "url": f"{assets_repo}/v0.1.0/cscs_arcface_model.onnx"
-
-    },
-    {
-        "model_name": "CSCSIDArcFace",
-        "local_path": f"{models_dir}/cscs_id_adapter.onnx",
-        "hash": "288ee88fa208e64846261f9c16f19362db000074b2f4c9000ea49b2311a6d55b",
-        "url": f"{assets_repo}/v0.1.0/cscs_id_adapter.onnx"
-
-    },
-    {
         "model_name": "GFPGANv1.4",
         "local_path": f"{models_dir}/GFPGANv1.4.onnx",
         "hash": "6548e54cbcf248af385248f0c1193b359c37a0f98b836282b09cf48af4fd2b73",
         "url": f"{assets_repo}/v0.1.0/GFPGANv1.4.onnx"
+
+    },
+    {
+        "model_name": "GFPGAN1024",
+        "local_path": f"{models_dir}/gfpgan-1024.onnx",
+        "hash": "ee8dd6415e388b3a410689d5d9395a2bf50b5973b588421ebfa57bc266f19e24",
+        "url": "https://github.com/Glat0s/GFPGAN-1024-onnx/releases/download/v0.0.1/gfpgan-1024.onnx"
 
     },
     {
@@ -285,27 +253,6 @@ models_list = [
         "local_path": f"{models_dir}/GPEN-BFR-2048.onnx",
         "hash": "d0229ff43f979c360bd19daa9cd0ce893722d59f41a41822b9223ebbe4f89b3e",
         "url": f"{assets_repo}/v0.1.0/GPEN-BFR-2048.onnx"
-
-    },
-    {
-        "model_name": "CodeFormer",
-        "local_path": f"{models_dir}/codeformer_fp16.onnx",
-        "hash": "9c3ae2ce2de616815815628f966cdef5d9466722434a1be00c0785ec92e2a94f",
-        "url": f"{assets_repo}/v0.1.0/codeformer_fp16.onnx"
-
-    },
-    {
-        "model_name": "VQFRv2",
-        "local_path": f"{models_dir}/VQFRv2.fp16.onnx",
-        "hash": "30c3d854c8e5c8abaf9c83c00d2466b7c3f64865d7b3b8596f56714a717ffd6f",
-        "url": f"{assets_repo}/v0.1.0/VQFRv2.fp16.onnx"
-
-    },
-    {
-        "model_name": "RestoreFormerPlusPlus",
-        "local_path": f"{models_dir}/RestoreFormerPlusPlus.fp16.onnx",
-        "hash": "e5df99ed4f501be2009ed8e708f407dd26ac400c55a43a01d8c8c157bc475b3f",
-        "url": f"{assets_repo}/v0.1.0/RestoreFormerPlusPlus.fp16.onnx"
 
     },
     {
@@ -412,12 +359,13 @@ models_list = [
         "hash": "5b805bba7b5660ab7070b5a381dcf75e5b3e04199f1e9387232a77a00095102e",
         "url": f"{assets_repo}/v0.1.0/faceparser_resnet34.onnx"
 
-    },
+    },    
     {
-        "model_name": "RD64ClipText",
-        "local_path": f"{models_dir}/rd64-uni-refined.pth",
-        "hash": "a4956f9a7978a75630b08c9d6ec075b7c51cf43b4751b686e3a011d4012ddc9d",
-        "url": f"{assets_repo}/v0.1.0/rd64-uni-refined.pth",
+        "model_name": "combo_relu3_3_relu3_1",
+        "local_path": f"{models_dir}/vgg_combo_relu3_3_relu3_1.onnx",
+        "hash": "1068EE41E3C67DCFBBECCBC93E539EB06F89BBA08618951BB33E9BE2C1FBC986",
+        "url": f"{assets_repo}/v0.1.0_lp/vgg_combo_relu3_3_relu3_1.onnx"
+
     },
     {
         "model_name": "LivePortraitMotionExtractor",
@@ -467,5 +415,23 @@ models_list = [
         "hash": "a6164debbf1e851c3dcefa622111c42a78afd9bb8f1540e7d01172ddf642c3b5",
         "url": f"{assets_repo}/v0.1.0_lp/warping_spade-fix.onnx"
 
+    },
+    {
+        "model_name": "RefLDMVAEEncoder",
+        "local_path": f"{models_dir}/ref_ldm_vae_encoder.onnx",
+        "hash": "b88d18e79bb0dc2a0d2763e4fd806d6ce7f885a6503a828ab862a7c284d456fc",
+        "url": "https://github.com/Glat0s/ref-ldm-onnx/releases/download/v0.0.1/ref_ldm_vae_encoder.onnx"
+    },
+    {
+        "model_name": "RefLDMVAEDecoder",
+        "local_path": f"{models_dir}/ref_ldm_vae_decoder.onnx",
+        "hash": "eca3065e6a40f4f73a0a14bc810769d07563a351964a0830ad59a481aa00b4f5",
+        "url": "https://github.com/Glat0s/ref-ldm-onnx/releases/download/v0.0.1/ref_ldm_vae_decoder.onnx"
+    },
+    {
+        "model_name": "RefLDM_UNET_EXTERNAL_KV",
+        "local_path": f"{models_dir}/ref_ldm_unet_external_kv.onnx",
+        "hash": "56edbea2aaf0361607645bbe0f35ce07ff8ddce80ee0ef617af305d50d251154",
+        "url": "https://github.com/Glat0s/ref-ldm-onnx/releases/download/v0.0.1/ref_ldm_unet_external_kv.onnx"
     }
 ]
