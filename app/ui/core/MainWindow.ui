@@ -809,23 +809,6 @@
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QCheckBox" name="filterWebcamsCheckBox">
-           <property name="toolTip">
-            <string>Include Webcams</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="media.qrc">
-             <normaloff>:/media/media/webcam.png</normaloff>:/media/media/webcam.png</iconset>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
         </layout>
        </item>
        <item>
