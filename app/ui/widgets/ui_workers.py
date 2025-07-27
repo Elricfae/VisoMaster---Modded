@@ -14,7 +14,7 @@ from app.processors.models_data import detection_model_mapping, landmark_model_m
 from app.helpers import miscellaneous as misc_helpers
 from app.ui.widgets.actions import common_actions as common_widget_actions
 from app.ui.widgets.actions import filter_actions
-from app.ui.widgets.settings_layout_data import SETTINGS_LAYOUT_DATA, CAMERA_BACKENDS
+from app.ui.widgets.settings_layout_data import SETTINGS_LAYOUT_DATA
 
 if TYPE_CHECKING:
     from app.ui.main_ui import MainWindow
@@ -22,16 +22,14 @@ if TYPE_CHECKING:
 class TargetMediaLoaderWorker(qtc.QThread):
     # Define signals to emit when loading is done or if there are updates
     thumbnail_ready = qtc.Signal(str, QPixmap, str, str)  # Signal with media path and QPixmap and file_type, media_id
-    webcam_thumbnail_ready = qtc.Signal(str, QPixmap, str, str, int, int)
     finished = qtc.Signal()  # Signal to indicate completion
 
-    def __init__(self, main_window: 'MainWindow', folder_name=False, files_list=None, media_ids=None, webcam_mode=False, parent=None,):
+    def __init__(self, main_window: 'MainWindow', folder_name=False, files_list=None, media_ids=None, parent=None,):
         super().__init__(parent)
         self.main_window = main_window
         self.folder_name = folder_name
         self.files_list = files_list or []
         self.media_ids = media_ids or []
-        self.webcam_mode = webcam_mode
         self._running = True  # Flag to control the running state
         
         # Ensure thumbnail directory exists
@@ -42,8 +40,6 @@ class TargetMediaLoaderWorker(qtc.QThread):
             self.load_videos_and_images_from_folder(self.folder_name)
         if self.files_list:
             self.load_videos_and_images_from_files_list(self.files_list)
-        if self.webcam_mode:
-            self.load_webcams()
         self.finished.emit()
 
     def load_videos_and_images_from_folder(self, folder_name):
@@ -90,21 +86,6 @@ class TargetMediaLoaderWorker(qtc.QThread):
             i+=1
         self.main_window.placeholder_update_signal.emit(self.main_window.targetVideosList, False)
 
-    def load_webcams(self,):
-        self.main_window.placeholder_update_signal.emit(self.main_window.targetVideosList, True)
-        camera_backend = CAMERA_BACKENDS[self.main_window.control['WebcamBackendSelection']]
-        for i in range(int(self.main_window.control['WebcamMaxNoSelection'])):
-            try:
-                pixmap = common_widget_actions.extract_frame_as_pixmap(media_file_path=f'Webcam {i}', file_type='webcam', webcam_index=i, webcam_backend=camera_backend)
-                media_id = str(uuid.uuid1().int)
-
-                if pixmap:
-                    # Emit the signal to update GUI
-                    self.webcam_thumbnail_ready.emit(f'Webcam {i}', pixmap, 'webcam',media_id, i, camera_backend)
-            except Exception: # pylint: disable=broad-exception-caught
-                traceback.print_exc()
-        self.main_window.placeholder_update_signal.emit(self.main_window.targetVideosList, False)
-
     def stop(self):
         """Stop the thread by setting the running flag to False."""
         self._running = False
@@ -138,7 +119,7 @@ class InputFacesLoaderWorker(qtc.QThread):
             models_processor.models[detect_model] = models_processor.load_model(detect_model)
         if not models_processor.models[landmark_detect_model] and control['LandmarkDetectToggle']:
             models_processor.models[landmark_detect_model] = models_processor.load_model(landmark_detect_model)
-        for recognition_model in ['Inswapper128ArcFace', 'SimSwapArcFace', 'GhostArcFace', 'CSCSArcFace', 'CSCSIDArcFace']:
+        for recognition_model in ['Inswapper128ArcFace', 'SimSwapArcFace']:
             if not models_processor.models[recognition_model]:
                 models_processor.models[recognition_model] = models_processor.load_model(recognition_model)
         if was_playing:
@@ -190,7 +171,6 @@ class InputFacesLoaderWorker(qtc.QThread):
                 cropped_img = cropped_img.cpu().numpy()
                 cropped_img = cropped_img[..., ::-1]  # Swap the channels from RGB to BGR
                 face_img = numpy.ascontiguousarray(cropped_img)
-                # crop = cv2.resize(face[2].cpu().numpy(), (82, 82))
                 pixmap = common_widget_actions.get_pixmap_from_frame(self.main_window, face_img)
 
                 embedding_store: Dict[str, numpy.ndarray] = {}
@@ -253,9 +233,6 @@ class FilterWorker(qtc.QThread):
             include_file_types.append('image')
         if main_window.filterVideosCheckBox.isChecked():
             include_file_types.append('video')
-        if main_window.filterWebcamsCheckBox.isChecked():
-            include_file_types.append('webcam')
-
         visible_indices = []
         for i in range(main_window.targetVideosList.count()):
             item = main_window.targetVideosList.item(i)

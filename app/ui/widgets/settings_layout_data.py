@@ -18,7 +18,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'level': 1,
             'label': 'Providers Priority',
             'options': ['CUDA', 'TensorRT', 'TensorRT-Engine', 'CPU'],
-            'default': 'CUDA',
+            'default': 'TensorRT-Engine',
             'help': 'Select the providers priority to be used with the system.',
             'exec_function': control_actions.change_execution_provider,
             'exec_function_args': [],
@@ -28,7 +28,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Number of Threads',
             'min_value': '1',
             'max_value': '30',
-            'default': '2',
+            'default': '1',
             'step': 1,
             'help': 'Set number of execution threads while playing and recording. Depends strongly on GPU VRAM.',
             'exec_function': control_actions.change_threads_number,
@@ -64,11 +64,19 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'help': 'Automatically Swap all faces using selected Source Faces/Embeddings when loading an video/image file'
         },
     },
+    'Best Swap': {
+        'SwapOnlyBestMatchEnableToggle': {
+            'level': 3,
+            'label': 'Swap only best match',
+            'default': False,           
+            'help': 'only swap highest face match per face (not every match above treshold)'
+        }
+    },
     'Detectors': {
         'DetectorModelSelection': {
             'level': 1,
             'label': 'Face Detect Model',
-            'options': ['RetinaFace', 'Yolov8', 'SCRFD', 'Yunet'],
+            'options': ['RetinaFace', 'Yolov8', 'SCRFD'],
             'default': 'RetinaFace',
             'help': 'Select the face detection model to use for detecting faces in the input image or video.'
         },
@@ -77,7 +85,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Detect Score',
             'min_value': '1',
             'max_value': '100',
-            'default': '50',
+            'default': '48',
             'step': 1,
             'help': 'Set the confidence score threshold for face detection. Higher values ensure more confident detections but may miss some faces.'
         },
@@ -86,7 +94,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Max No of Faces to Detect',
             'min_value': '1',
             'max_value': '50',
-            'default': '20',
+            'default': '2',
             'step': 1,     
             'help': 'Set the maximum number of faces to detect in a frame'
    
@@ -199,63 +207,20 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'requiredToggleValue': True,
             'help': 'Blends the enhanced results back into the original frame.'
         },
-    },
-    'Webcam Settings': {
-        'WebcamMaxNoSelection': {
-            'level': 2,
-            'label': 'Webcam Max No',
-            'options': ['1', '2', '3', '4', '5', '6'],
-            'default': '1',
-            'help': 'Select the maximum number of webcam streams to allow for face swapping.'
-        },
-        'WebcamBackendSelection': {
-            'level': 2,
-            'label': 'Webcam Backend',
-            'options': ['Default', 'DirectShow', 'MSMF', 'V4L', 'V4L2', 'GSTREAMER'],
-            'default': 'Default',
-            'help': 'Choose the backend for accessing webcam input.'
-        },
-        'WebcamMaxResSelection': {
-            'level': 2,
-            'label': 'Webcam Resolution',
-            'options': ['480x360', '640x480', '1280x720', '1920x1080', '2560x1440', '3840x2160'],
-            'default': '1280x720',
-            'help': 'Select the maximum resolution for webcam input.'
-        },
-        'WebCamMaxFPSSelection': {
-            'level': 2,
-            'label': 'Webcam FPS',
-            'options': ['23', '30', '60'],
-            'default': '30',
-            'help': 'Set the maximum frames per second (FPS) for webcam input.'
-        },
-    },
-    'Virtual Camera': {
-        'SendVirtCamFramesEnableToggle': {
+        'FrameEnhancerDownToggle':{
             'level': 1,
-            'label': 'Send Frames to Virtual Camera',
+            'label': 'Frame Downscale to 1920*1080',
             'default': False,
-            'help': 'Send the swapped video/webcam output to virtual camera for using in external applications',
-            'exec_function': control_actions.toggle_virtualcam,
-            'exec_function_args': [],
-        },
-        'VirtCamBackendSelection': {
-            'level': 1,
-            'label': 'Virtual Camera Backend',
-            'options': ['obs', 'unitycapture'],
-            'default': 'obs',
-            'help': 'Choose the backend based on the Virtual Camera you have set up',
-            'parentToggle': 'SendVirtCamFramesEnableToggle',
-            'requiredToggleValue': True,
-            'exec_function': control_actions.enable_virtualcam,
-            'exec_funtion_args': [],
+            #'parentToggle': 'FrameEnhancerEnableToggle',
+            #'requiredToggleValue': True,
+            'help': 'Select to downscale the video to 1920*1080'
         },
     },
     'Face Recognition': {
         'RecognitionModelSelection': {
             'level': 1,
             'label': 'Recognition Model',
-            'options': ['Inswapper128ArcFace', 'SimSwapArcFace', 'GhostArcFace', 'CSCSArcFace'],
+            'options': ['Inswapper128ArcFace', 'SimSwapArcFace'],
             'default': 'Inswapper128ArcFace',
             'help': 'Choose the ArcFace model to be used for comparing the similarity of faces.'
         },
@@ -290,13 +255,4 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'help': 'Include all files from Subfolders when choosing Input Faces Folder'
         }
     }
-}
-
-CAMERA_BACKENDS = {
-    'Default': cv2.CAP_ANY,
-    'DirectShow': cv2.CAP_DSHOW,
-    'MSMF': cv2.CAP_MSMF,
-    'V4L': cv2.CAP_V4L,
-    'V4L2': cv2.CAP_V4L2,
-    'GSTREAMER': cv2.CAP_GSTREAMER,
 }

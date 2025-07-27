@@ -85,14 +85,11 @@ class CardButton(QPushButton):
         return card_buttons
     
 class TargetMediaCardButton(CardButton):
-    def __init__(self, media_path: str, file_type: str, media_id:str, is_webcam=False, webcam_index=-1, webcam_backend=-1, *args, **kwargs):
+    def __init__(self, media_path: str, file_type: str, media_id:str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.media_id = media_id
         self.file_type = file_type
         self.media_path = media_path
-        self.is_webcam = is_webcam
-        self.webcam_index = webcam_index
-        self.webcam_backend = webcam_backend
         self.media_capture: cv2.VideoCapture|bool = False
         self.setCheckable(True)
         self.setToolTip(media_path)
@@ -198,19 +195,6 @@ class TargetMediaCardButton(CardButton):
             max_frames_number = 0  # For an image, there is only one "frame"
             main_window.video_processor.max_frame_number = max_frames_number
 
-        elif self.file_type == 'webcam':
-            res_width, res_height = self.main_window.control['WebcamMaxResSelection'].split('x')
-
-            media_capture = cv2.VideoCapture(self.webcam_index, self.webcam_backend)
-            media_capture.set(cv2.CAP_PROP_FRAME_WIDTH, int(res_width))
-            media_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, int(res_height))
-            max_frames_number = 999999
-            _, frame = misc_helpers.read_frame(media_capture)
-            main_window.video_processor.media_capture = media_capture
-            self.media_capture = media_capture
-            main_window.video_processor.fps = media_capture.get(cv2.CAP_PROP_FPS)
-            main_window.video_processor.max_frame_number = max_frames_number
-
         if frame is not None:
             main_window.scene.clear()
             if self.file_type == 'video':
@@ -254,12 +238,6 @@ class TargetMediaCardButton(CardButton):
                 list(main_window.target_faces.values())[0].click()
             common_widget_actions.refresh_frame(main_window)
             layout_actions.fit_image_to_view_onchange(main_window)
-
-        if main_window.control['SendVirtCamFramesEnableToggle'] and self.file_type!='image':
-            # Re-initialize virtualcam to reset its dimensions with that of the new video
-            main_window.video_processor.enable_virtualcam()
-
-        # list_view_actions.find_target_faces(main_window)
 
     def remove_target_media_from_list(self):
         main_window = self.main_window
@@ -323,10 +301,7 @@ class TargetMediaCardButton(CardButton):
 class TargetFaceCardButton(CardButton):
     def __init__(self, media_path, cropped_face, embedding_store: Dict[str, np.ndarray], face_id:str, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # if self.main_window.target_faces:
-        #     self.face_id = max([target_face.face_id for target_face in self.main_window.target_faces]) + 1
-        # else:
-        #     self.face_id = 0
+
         self.face_id = face_id
         self.media_path = media_path
         self.cropped_face = cropped_face
@@ -383,9 +358,7 @@ class TargetFaceCardButton(CardButton):
         
         main_window.selected_target_face_id = self.face_id
 
-        # print('main_window.selected_target_face_id', main_window.selected_target_face_id)     
         common_widget_actions.set_widgets_values_using_face_id_parameters(main_window=main_window, face_id=self.face_id)      
-        # common_widget_actions.refresh_frame(main_window)
 
         main_window.current_widget_parameters = main_window.parameters[self.face_id].copy()
 
@@ -607,6 +580,7 @@ class InputFaceCardButton(CardButton):
         remove_action = QtGui.QAction('Remove from list', self)
         remove_action.triggered.connect(self.remove_input_face_from_list)
         self.popMenu.addAction(remove_action)
+
     def on_context_menu(self, point):
         # show context menu
         self.popMenu.exec_(self.mapToGlobal(point))
@@ -1001,10 +975,6 @@ class ParameterSlider(QtWidgets.QSlider, ParametersWidget):
 
     def reset_to_default_value(self):
         self.setValue(int(self.default_value))
-
-    # def value(self):
-    #     # """Return the slider value as a float, scaled by the decimals."""
-    #     return super().value()
 
     def setValue(self, value):
         """Set the slider value, scaling it from a float to the internal integer."""
