@@ -19,10 +19,10 @@ def add_media_thumbnail_to_target_videos_list(main_window: 'MainWindow', media_p
 
 # Functions to add Buttons with thumbnail for selecting videos/images and faces
 @QtCore.Slot(str, QtGui.QPixmap, str, int, int)
-def add_webcam_thumbnail_to_target_videos_list(main_window: 'MainWindow', media_path, pixmap, file_type, media_id, webcam_index, webcam_backend):
-    add_media_thumbnail_button(main_window, widget_components.TargetMediaCardButton, main_window.targetVideosList, main_window.target_videos, pixmap, media_path=media_path, file_type=file_type, media_id=media_id, is_webcam=True, webcam_index=webcam_index, webcam_backend=webcam_backend)
-
-@QtCore.Slot()
+#def add_webcam_thumbnail_to_target_videos_list(main_window: 'MainWindow', media_path, pixmap, file_type, media_id, webcam_index, webcam_backend):
+#    add_media_thumbnail_button(main_window, widget_components.TargetMediaCardButton, main_window.targetVideosList, main_window.target_videos, pixmap, media_path=media_path, file_type=file_type, media_id=media_id, is_webcam=True, webcam_index=webcam_index, webcam_backend=webcam_backend)
+#
+#@QtCore.Slot()
 def add_media_thumbnail_to_target_faces_list(main_window: 'MainWindow', cropped_face, embedding_store, pixmap, face_id):
     add_media_thumbnail_button(main_window, widget_components.TargetFaceCardButton, main_window.targetFacesList, main_window.target_faces, pixmap, cropped_face=cropped_face, embedding_store=embedding_store, face_id=face_id )
 
@@ -160,19 +160,19 @@ def select_target_medias(main_window: 'MainWindow', source_type='folder', folder
     main_window.video_loader_worker.start()
 
 @QtCore.Slot()
-def load_target_webcams(main_window: 'MainWindow',):
-    if main_window.filterWebcamsCheckBox.isChecked():
-        main_window.video_loader_worker = ui_workers.TargetMediaLoaderWorker(main_window=main_window, webcam_mode=True)
-        main_window.video_loader_worker.webcam_thumbnail_ready.connect(partial(add_webcam_thumbnail_to_target_videos_list, main_window))
-        main_window.video_loader_worker.start()
-    else:
-        main_window.placeholder_update_signal.emit(main_window.targetVideosList, True)
-        for _, target_video in main_window.target_videos.copy().items(): #Use a copy of the dict to prevent Dictionary changed during iteration exceptions
-            if target_video.file_type == 'webcam':
-                target_video.remove_target_media_from_list()
-                if target_video == main_window.selected_video_button:
-                    main_window.selected_video_button = False
-        main_window.placeholder_update_signal.emit(main_window.targetVideosList, False)
+#def load_target_webcams(main_window: 'MainWindow',):
+#    if main_window.filterWebcamsCheckBox.isChecked():
+#        main_window.video_loader_worker = ui_workers.TargetMediaLoaderWorker(main_window=main_window, webcam_mode=True)
+#        main_window.video_loader_worker.webcam_thumbnail_ready.connect(partial(add_webcam_thumbnail_to_target_videos_list, main_window))
+#        main_window.video_loader_worker.start()
+#    else:
+#        main_window.placeholder_update_signal.emit(main_window.targetVideosList, True)
+#        for _, target_video in main_window.target_videos.copy().items(): #Use a copy of the dict to prevent Dictionary changed during iteration exceptions
+#            if target_video.file_type == 'webcam':
+#                target_video.remove_target_media_from_list()
+#                if target_video == main_window.selected_video_button:
+#                    main_window.selected_video_button = False
+#        main_window.placeholder_update_signal.emit(main_window.targetVideosList, False)
 
 def clear_stop_loading_input_media(main_window: 'MainWindow'):
     if main_window.input_faces_loader_worker:

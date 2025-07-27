@@ -9,6 +9,7 @@ from pyqttoast import Toast, ToastPreset, ToastPosition
 from PySide6 import QtWidgets,QtCore,QtGui
 
 from app.ui.widgets import widget_components
+from app.ui.widgets.common_layout_data import COMMON_LAYOUT_DATA
 from app.ui.widgets.settings_layout_data import SETTINGS_LAYOUT_DATA
 import app.helpers.miscellaneous as misc_helpers
 if TYPE_CHECKING:
@@ -319,13 +320,13 @@ def extract_frame_as_pixmap(media_file_path, file_type, webcam_index=False, webc
         ret, frame = misc_helpers.read_frame(cap)
         cap.release()
             
-    elif file_type == 'webcam':
-        camera = cv2.VideoCapture(webcam_index, webcam_backend)
-        if not camera.isOpened():
-            return
-        ret, frame = misc_helpers.read_frame(camera)
-        if not ret:
-            return
+#    elif file_type == 'webcam':
+#        camera = cv2.VideoCapture(webcam_index, webcam_backend)
+#        if not camera.isOpened():
+#            return
+#        ret, frame = misc_helpers.read_frame(camera)
+#        if not ret:
+#            return
 
     if isinstance(frame, np.ndarray):
         # Save thumbnail for future use
@@ -363,13 +364,13 @@ def set_control_widgets_values(main_window: 'MainWindow', enable_exec_func = Tru
     control = main_window.control.copy()
     parameter_widgets = main_window.parameter_widgets
 
-    # Prepare a dictionary of settings options from layout data
-    settings_options = {
-        setting_name: setting_data
-        for setting_group in SETTINGS_LAYOUT_DATA.values()
-        for setting_name, setting_data in setting_group.items()
-    }
-
+    # Prepare a dictionary of ALL widget options from layout data
+    all_widget_options = {}
+    for layout_data_source in [SETTINGS_LAYOUT_DATA, COMMON_LAYOUT_DATA]: # Iterate over both
+        for group_name, group_data in layout_data_source.items():
+            for widget_key, widget_data in group_data.items():
+                all_widget_options[widget_key] = widget_data
+    
     # Iterate through control items and update widgets
     for control_name, control_value in control.items():
         widget = parameter_widgets.get(control_name)
@@ -385,13 +386,14 @@ def set_control_widgets_values(main_window: 'MainWindow', enable_exec_func = Tru
 
             if enable_exec_func:
                 # Execute any associated function, if defined
-                exec_function_data = settings_options[control_name].get('exec_function')
-                if exec_function_data:
-                    exec_function = partial(
-                        exec_function_data, main_window
-                    )
-                    exec_args = settings_options[control_name].get('exec_fuction_args', [])
-                    exec_function(control_value, *exec_args)
+                widget_definition = all_widget_options.get(control_name) # Use .get() for safety
+                if widget_definition:
+                    exec_function_data = widget_definition.get('exec_function')
+                    if exec_function_data:
+                        # The functions in control_actions.py are typically (main_window, value, *additional_args)
+                        exec_args_from_layout = widget_definition.get('exec_function_args', []) 
+                        final_exec_args = [main_window, control_value] + exec_args_from_layout
+                        exec_function_data(*final_exec_args)
 
             # Re-enable frame refresh
             widget.enable_refresh_frame = True

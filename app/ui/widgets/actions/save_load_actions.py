@@ -252,7 +252,7 @@ def save_current_workspace(main_window: 'MainWindow', data_filename:str|bool = F
             'embedding_store': {embed_model: embedding.tolist() for embed_model,embedding in embed_button.embedding_store.items()}, 
             'embedding_name': embed_button.embedding_name}
     
-    target_medias_data = [{'media_id': media_id, 'media_path': target_media.media_path}  for media_id,target_media in main_window.target_videos.items() if not target_media.is_webcam]
+    target_medias_data = [{'media_id': media_id, 'media_path': target_media.media_path}  for media_id,target_media in main_window.target_videos.items()]
     selected_media_id = main_window.selected_video_button.media_id if main_window.selected_video_button else False
     markers = copy.deepcopy(main_window.markers)
     # Convert params to dict
