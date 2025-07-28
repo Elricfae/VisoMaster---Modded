@@ -553,23 +553,6 @@ class FrameWorker(threading.Thread):
             input_face_affined = original_face_512
             dim = 4
 
-        elif swapper_model in ('Hyperswap256 Version A', 'Hyperswap256 Version B', 'Hyperswap256 Version C'):
-            version = swapper_model[-1]
-            #self.models_processor.load_inswapper_iss_emap(swapper_model) #Do we need this ?
-            latent = torch.from_numpy(self.models_processor.calc_swapper_latent_hyper(s_e, version)).float().to(self.models_processor.device)
-            if parameters['FaceLikenessEnableToggle']:
-                factor = parameters['FaceLikenessFactorDecimalSlider']
-                dst_latent = torch.from_numpy(self.models_processor.calc_swapper_latent_hyper(t_e, version)).float().to(self.models_processor.device)
-                latent = latent - (factor * dst_latent)
-#            dim = 2
-#            input_face_affined = original_face_256
-            if (parameters['SwapModelSelection'] == 'Hyperswap256 Version A' and parameters['HyperAEnableToggle']) or (parameters['SwapModelSelection'] == 'Hyperswap256 Version B' and parameters['HyperBEnableToggle']) or (parameters['SwapModelSelection'] == 'Hyperswap256 Version C' and parameters['HyperCEnableToggle']):
-                dim = 4
-                input_face_affined = original_face_512
-            else:
-                dim = 2
-                input_face_affined = original_face_256
-
         return input_face_affined, dfm_model, dim, latent
     
     def get_swapped_and_prev_face(self, output, input_face_affined, original_face_512, latent, itex, dim, swapper_model, dfm_model, parameters, ):
@@ -671,45 +654,6 @@ class FrameWorker(threading.Thread):
             prev_face = input_face_affined.clone()
             input_face_affined = out_celeb.clone()
             output = out_celeb.clone()
-
-        elif swapper_model in ('Hyperswap256 Version A', 'Hyperswap256 Version B', 'Hyperswap256 Version C'):
-            version = swapper_model[-1]
-            with torch.no_grad():
-                dim_res = dim // 2
-                output = torch.zeros_like(input_face_affined)
-
-                for _ in range(itex):
-                    # 1) Tile split: jedes Tile ist 256×256
-                    tiles = []
-                    for j in range(dim_res):
-                        for i in range(dim_res):
-                            tile = input_face_affined[j::dim_res, i::dim_res]       # [256,256,3]
-                            tile = tile.permute(2, 0, 1).unsqueeze(0)       # [1,3,256,256]
-                            tiles.append(tile.contiguous())
-
-                    # 2) Inference je Tile
-                    idx = 0
-                    for j in range(dim_res):
-                        for i in range(dim_res):
-                            input_tile  = tiles[idx]
-                            output_tile = torch.empty_like(input_tile)
-                            # hier Dein run_iss_swapper call
-                            self.models_processor.run_swapper_hyperswap256(
-                                input_tile, latent, output_tile, version
-                            )
-
-                            # 3) zurück in HWC
-                            out_tile = output_tile.squeeze(0).permute(1, 2, 0)  # [256,256,3]
-                            # 4) wieder zusammenfügen
-                            output[j::dim_res, i::dim_res] = out_tile
-                            idx += 1
-
-                    # 5) für nächsten Durchgang
-                    prev_face           = input_face_affined.clone()
-                    input_face_affined  = output.clone()
-
-                # 6) skaliere zurück in [0,255]
-                output = torch.clamp(output * 255, 0, 255)
 
         output = output.permute(2, 0, 1)
         #if dim != 4 or swapper_model == 'DeepFaceLive (DFM)':
