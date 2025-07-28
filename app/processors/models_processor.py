@@ -486,12 +486,6 @@ class ModelsProcessor(QtCore.QObject):
 
     # --- Swapper Methods ---
 
-    def calc_swapper_latent_hyper(self, source_embedding, version="A"):
-        return self.face_swappers.calc_swapper_latent_hyper(source_embedding, version)
-
-    def run_swapper_hyperswap256(self, image, embedding, output, version="A"):
-        return self.face_swappers.run_swapper_hyperswap256(image, embedding, output, version)
-
     def calc_inswapper_latent(self, source_embedding):
         return self.face_swappers.calc_inswapper_latent(source_embedding)
 

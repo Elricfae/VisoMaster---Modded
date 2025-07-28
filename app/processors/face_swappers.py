@@ -165,24 +165,3 @@ class FaceSwappers:
         elif self.models_processor.device != "cpu":
             self.models_processor.syncvec.cpu()
         self.models_processor.models['SimSwap512'].run_with_iobinding(io_binding)
-
-    def calc_swapper_latent_hyper(self, source_embedding, version="A"):
-        latent = source_embedding.reshape((1, -1))
-        latent = latent / np.linalg.norm(latent, axis=1, keepdims=True)
-        return latent
-
-    def run_swapper_hyperswap256(self, image, embedding, output, version="A"):
-        MODEL = f'Hyperswap256 Version {version}'
-        if not self.models_processor.models[MODEL]:
-            self.models_processor.models[MODEL] = self.models_processor.load_model(MODEL)
-        session = self.models_processor.models[MODEL]
-        io_binding = session.io_binding()
-        io_binding.bind_input(name='target', device_type=self.models_processor.device, device_id=0, element_type=np.float32, shape=(1, 3, 256, 256), buffer_ptr=image.data_ptr())
-        #io_binding.bind_input(name='source', device_type=self.models_processor.device, device_id=0, element_type=np.float32, shape=tuple(embedding.shape), buffer_ptr=embedding.data_ptr())
-        io_binding.bind_input(name='source', device_type=self.models_processor.device, device_id=0, element_type=np.float32, shape=(1,512), buffer_ptr=embedding.data_ptr())
-        io_binding.bind_output(name='output', device_type=self.models_processor.device, device_id=0,element_type=np.float32, shape=(1, 3, 256, 256), buffer_ptr=output.data_ptr())
-        if self.models_processor.device == "cuda":
-            torch.cuda.synchronize()
-        elif self.models_processor.device != "cpu":
-            self.models_processor.syncvec.cpu()
-        session.run_with_iobinding(io_binding)

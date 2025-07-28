@@ -47,9 +47,6 @@ arcface_mapping_model_dict = {
     'InStyleSwapper256 Version C': 'Inswapper128ArcFace',
     'DeepFaceLive (DFM)': 'Inswapper128ArcFace',
     'SimSwap512': 'SimSwapArcFace',
-    'Hyperswap256 Version A': 'Inswapper128ArcFace',
-    'Hyperswap256 Version B': 'Inswapper128ArcFace',
-    'Hyperswap256 Version C': 'Inswapper128ArcFace',
 }
 
 detection_model_mapping = {
@@ -104,24 +101,6 @@ models_list = [
         "hash": "08c6ca9c0a65eff119bea42686a4574337141de304b9d26e2f9d11e78d9e8e86",
         "url": f"{assets_repo}/v0.1.0/simswap_512_unoff.onnx"
 
-    },
-    {
-        "model_name": "Hyperswap256 Version A",
-        "local_path": f"{models_dir}/Hyperswap256_Version_A.onnx",
-        "hash": f"{models_dir}/hyperswap_1a_256.hash",
-        "url": f"{assets_repo}/v0.1.0/Hyperswap256_Version_A.onnx"
-    },
-    {
-        "model_name": "Hyperswap256 Version B",
-        "local_path": f"{models_dir}/Hyperswap256_Version_B.onnx",
-        "hash": f"{models_dir}/hyperswap_1b_256.hash",
-        "url": f"{assets_repo}/v0.1.0/Hyperswap256_Version_B.onnx"
-    },
-    {
-        "model_name": "Hyperswap256 Version C",
-        "local_path": f"{models_dir}/Hyperswap256_Version_C.onnx",
-        "hash": f"{models_dir}/hyperswap_1c_256.hash",
-        "url": f"{assets_repo}/v0.1.0/Hyperswap256_Version_C.onnx"
     },
     {
         "model_name": "RetinaFace",
