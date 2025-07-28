@@ -8,7 +8,7 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
         'SwapModelSelection': {
             'level': 1,
             'label': 'Swapper Model',
-            'options': ['Inswapper128', 'InStyleSwapper256 Version A', 'InStyleSwapper256 Version B', 'InStyleSwapper256 Version C', 'DeepFaceLive (DFM)', 'SimSwap512', 'Hyperswap256 Version A', 'Hyperswap256 Version B', 'Hyperswap256 Version C'],
+            'options': ['Inswapper128', 'InStyleSwapper256 Version A', 'InStyleSwapper256 Version B', 'InStyleSwapper256 Version C', 'DeepFaceLive (DFM)', 'SimSwap512'],
             'default': 'Inswapper128',
             'help': 'Choose which swapper model to use for face swapping.'
         },
@@ -44,30 +44,6 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
             'parentSelection': 'SwapModelSelection',
             'requiredSelectionValue': 'InStyleSwapper256 Version C',
             'help': 'Like the inswapper Resolution (512) for InStyleSwappers. i dont know to hide it with 3 selections possible :(.'
-        },
-        'HyperAEnableToggle': {
-            'level': 2,
-            'label': '512 Resolution',
-            'default': False,            
-            'parentSelection': 'SwapModelSelection',
-            'requiredSelectionValue': 'Hyperswap256 Version A',
-            'help': 'Like the inswapper Resolution (512) for Hyperswap. i dont know to hide it with 3 selections possible :(.'
-        }, 
-        'HyperBEnableToggle': {
-            'level': 2,
-            'label': '512 Resolution',
-            'default': False,            
-            'parentSelection': 'SwapModelSelection',
-            'requiredSelectionValue': 'Hyperswap256 Version B',
-            'help': 'Like the inswapper Resolution (512) for Hyperswap. i dont know to hide it with 3 selections possible :(.'
-        }, 
-        'HyperCEnableToggle': {
-            'level': 2,
-            'label': '512 Resolution',
-            'default': False,            
-            'parentSelection': 'SwapModelSelection',
-            'requiredSelectionValue': 'Hyperswap256 Version C',
-            'help': 'Like the inswapper Resolution (512) for Hyperswap. i dont know to hide it with 3 selections possible :(.'
         },
         'DFMModelSelection': {
             'level': 2,
