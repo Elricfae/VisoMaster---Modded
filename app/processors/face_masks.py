@@ -191,7 +191,6 @@ class FaceMasks:
         result = {"swap_formask": swap_formask}
 
         # 3) Entscheide, ob FaceParser auf swap/orig gebraucht wird
-        need_bg      = parameters["DFLXSegEnableToggle"] and parameters["DFLXSegBGEnableToggle"]
         need_parser  = (
             parameters["FaceParserEnableToggle"]
             or (parameters["DFLXSegEnableToggle"]
@@ -214,7 +213,7 @@ class FaceMasks:
             return m
     
         # 4) FaceParser on swap_formask, falls nötig
-        if need_bg or need_parser:
+        if need_parser:
             img = swap_formask.float().div(255.0)
             img = v2.functional.normalize(img, (0.485,0.456,0.406), (0.229,0.224,0.225))
             img = img.unsqueeze(0)  # [1,3,512,512]
@@ -231,33 +230,6 @@ class FaceMasks:
             self.run_faceparser(img_o, out_orig)
             labels_orig = out_orig.argmax(dim=1).squeeze(0)
 
-        # 6) BG-Exclusion
-        '''
-        if need_bg:
-            attrs = [0,14,15,16,17,18]
-            bg_raw = make_mask(labels_swap, attrs,
-                               dil=parameters["CalcMaskBGTextureSlider"])
-            bg_occl = make_mask(labels_swap, attrs,
-                                dil=parameters["OccluderMaskBgSlider"])
-            result.update({
-                #"BgExclude":          bg_raw.unsqueeze(0),
-                "BgExcludeOccluder":  bg_occl.unsqueeze(0),
-            })
-        '''
-        '''
-        if need_bg_orig:
-            attrs = [0,14,15,16,17,18]
-            bg_orig = make_mask(labels_orig, attrs,
-                                dil=-parameters["CalcMaskBGTextureSlider"])
-            result["BgExclude"] = bg_orig.unsqueeze(0)
-        '''
-        '''
-        if need_bg_orig:
-            attrs = [0,14,15,16,17,18]
-            bg_orig = make_mask(labels_swap, attrs,
-                                dil=-parameters["CalcMaskBGTextureSlider"])
-            result["BgExclude"] = bg_orig.unsqueeze(0)
-        '''
         # 7) FaceParser-Logik
         if need_parser:
             # a) Mouth
@@ -296,7 +268,6 @@ class FaceMasks:
                         # kombiniere swap und orig
                         m1 = make_mask(labels_swap, [cls], dil=d)
                         m2 = make_mask(labels_orig, [cls], dil=d)
-                        #if parameters['MouthParserInsideToggle'] and parameters['MouthParserSlider'] > 0: #for mouth to be put in the swaped face (to minimize the overlap when the mouth in not aligned)
                         if parameters['MouthParserInsideToggle'] and cls == 11: #for mouth to be put in the swaped face (to minimize the overlap when the mouth in not aligned)
                             mask_fp = torch.max(mask_fp, torch.min(m1, m2))
                         else:

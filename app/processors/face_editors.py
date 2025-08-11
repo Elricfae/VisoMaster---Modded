@@ -35,8 +35,8 @@ class FaceEditors:
         kp_info = {}
         with torch.no_grad():
             # We force to use TensorRT because it doesn't work well in trt
-            #if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
-            if self.models_processor.provider_name == "!TensorRT-Engine":
+            if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
+            #if self.models_processor.provider_name == "!TensorRT-Engine":
                 if face_editor_type == 'Human-Face':
                     if not self.models_processor.models_trt['LivePortraitMotionExtractor']:
                         self.models_processor.models_trt['LivePortraitMotionExtractor'] = self.models_processor.load_model_trt('LivePortraitMotionExtractor', custom_plugin_path=None, precision="fp32")
@@ -131,8 +131,8 @@ class FaceEditors:
     def lp_appearance_feature_extractor(self, img, face_editor_type='Human-Face'):
         with torch.no_grad():
             # We force to use TensorRT. 
-            #if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
-            if self.models_processor.provider_name == "!TensorRT-Engine":
+            if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
+            #if self.models_processor.provider_name == "!TensorRT-Engine":
                 if face_editor_type == 'Human-Face':
                     if not self.models_processor.models_trt['LivePortraitAppearanceFeatureExtractor']:
                         self.models_processor.models_trt['LivePortraitAppearanceFeatureExtractor'] = self.models_processor.load_model_trt('LivePortraitAppearanceFeatureExtractor', custom_plugin_path=None, precision="fp16")
@@ -189,8 +189,8 @@ class FaceEditors:
         """
         with torch.no_grad():
             # We force to use TensorRT. 
-            #if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
-            if self.models_processor.provider_name == "!TensorRT-Engine":
+            if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
+            #if self.models_processor.provider_name == "!TensorRT-Engine":
                 if face_editor_type == 'Human-Face':
                     if not self.models_processor.models_trt['LivePortraitStitchingEye']:
                         self.models_processor.models_trt['LivePortraitStitchingEye'] = self.models_processor.load_model_trt('LivePortraitStitchingEye', custom_plugin_path=None, precision="fp16")
@@ -240,8 +240,8 @@ class FaceEditors:
         """
         with torch.no_grad():
             # We force to use TensorRT. 
-            #if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
-            if self.models_processor.provider_name == "!TensorRT-Engine":
+            if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
+            #if self.models_processor.provider_name == "!TensorRT-Engine":
                 if face_editor_type == 'Human-Face':
                     if not self.models_processor.models_trt['LivePortraitStitchingLip']:
                         self.models_processor.models_trt['LivePortraitStitchingLip'] = self.models_processor.load_model_trt('LivePortraitStitchingLip', custom_plugin_path=None, precision="fp16")
@@ -291,8 +291,8 @@ class FaceEditors:
         """
         with torch.no_grad():
             # We force to use TensorRT. 
-            #if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
-            if self.models_processor.provider_name == "!TensorRT-Engine":
+            if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
+            #if self.models_processor.provider_name == "!TensorRT-Engine":
                 if face_editor_type == 'Human-Face':
                     if not self.models_processor.models_trt['LivePortraitStitching']:
                         self.models_processor.models_trt['LivePortraitStitching'] = self.models_processor.load_model_trt('LivePortraitStitching', custom_plugin_path=None, precision="fp16")
@@ -379,6 +379,7 @@ class FaceEditors:
         kp_driving_new += delta_exp_diff
         kp_driving_new[..., :2] += delta_tx_ty_diff
 
+
         return kp_driving_new
 
     def lp_warp_decode(self, feature_3d: torch.Tensor, kp_source: torch.Tensor, kp_driving: torch.Tensor, face_editor_type='Human-Face') -> torch.Tensor:
@@ -390,8 +391,8 @@ class FaceEditors:
 
         with torch.no_grad():
             # We force to use TensorRT. 
-            #if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
-            if self.models_processor.provider_name == "TensorRT-Engine":
+            if self.models_processor.provider_name == "TensorRT-Engine" or self.models_processor.provider_name == "TensorRT":
+            #if self.models_processor.provider_name == "TensorRT-Engine":
                 if face_editor_type == 'Human-Face':
                     if not self.models_processor.models_trt['LivePortraitWarpingSpadeFix']:
                         if SYSTEM_PLATFORM == 'Windows':

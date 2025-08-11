@@ -187,8 +187,8 @@ class ModelsProcessor(QtCore.QObject):
         self.nThreads = 2
         self.syncvec = torch.empty((1, 1), dtype=torch.float32, device=self.device)
 
-        #self.models: Dict[str, onnxruntime.InferenceSession | None] = {} # Allow None
-        self.models: Dict[str, onnxruntime.InferenceSession] = {}
+        self.models: Dict[str, onnxruntime.InferenceSession | None] = {} # Allow None
+        #self.models: Dict[str, onnxruntime.InferenceSession] = {}
         self.models_path = {}
         self.models_data = {}
         for model_data in models_list:
@@ -200,8 +200,8 @@ class ModelsProcessor(QtCore.QObject):
         self.dfm_models: Dict[str, DFMModel] = {}
 
         if TENSORRT_AVAILABLE:
-            #self.models_trt: Dict[str, TensorRTPredictor | None] = {} # Allow None
-            self.models_trt: Dict[str, TensorRTPredictor] = {}
+            self.models_trt: Dict[str, TensorRTPredictor | None] = {} # Allow None
+            #self.models_trt: Dict[str, TensorRTPredictor] = {}
             self.models_trt_path = {}
             for model_data in models_trt_list:
                 model_name, model_path = model_data['model_name'], model_data['local_path']
@@ -636,7 +636,7 @@ class ModelsProcessor(QtCore.QObject):
                             reference_kv_filename: str,
                             use_reference_exclusive_path: bool,
                             denoiser_mode: str = "Single Step (Fast)",
-                            denoiser_single_step_t: int = 0,
+                            denoiser_single_step_t: int = 1,
                             denoiser_ddim_steps: int = 5,
                             denoiser_cfg_scale: float = 1.0,
                             denoiser_ddim_eta: float = 0.0,
