@@ -270,7 +270,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Denoiser Mode (Before)',
             'control_name': 'DenoiserModeSelectionBefore',
             'options': ["Single Step (Fast)", "Full Restore (DDIM)"],
-            'default': "Full Restore (DDIM)",
+            'default': "Single Step (Fast)",
             'parentToggle': 'DenoiserUNetEnableBeforeRestorersToggle',
             'requiredToggleValue': True,
             'help': 'Denoising mode for the pass before restorers. Single Step is generally faster.'
@@ -314,10 +314,10 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
         'DenoiserAfterFirstRestorerToggle': {
             'level': 1,
             'widget_type': 'ToggleButton',
-            'label': 'Enable Denoiser After First Restorer',
+            'label': 'Enable Denoiser After first Restorer',
             'control_name': 'DenoiserAfterFirstRestorerToggle',
             'default': False,
-            'help': 'Apply the UNet Denoiser again after the first face restorer has been applied. Uses the same UNet model and step settings.',
+            'help': 'Apply the UNet Denoiser again after first restorer have been applied. Uses the same UNet model and step settings.',
             'exec_function': control_actions.handle_denoiser_state_change,
             'exec_function_args': ['DenoiserAfterFirstRestorerToggle'],
         },
