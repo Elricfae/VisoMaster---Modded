@@ -1,3 +1,9 @@
+Base Visomaster used to implement GlatOs denoizer and GFPGAN-1024 mods and Hans's mod (with some adjustements).
+
+Some base functions deleted (Webcam support, some models, differencing, keypoints adjust, Eyes/Mouth restore → use the faceparser instead, and some other minor stuff i don't remember).
+
+Added a video downscale to 1080p function (used for 4k/8k input videos), reworked the expression restorer to separate the eyes and mouth sliders for individual tuning (added an experimental eyes normalization slider to reduce the 'cartoon' eyes when using eyes retargeting option), added an 'Mouth inside' option for the mouth faceparser to keep the parse inside the swaped mouth (to not overwrite the swapped lips).
+
 
 # VisoMaster 
 ### VisoMaster is a powerful yet easy-to-use tool for face swapping and editing in images and videos. It utilizes AI to produce natural-looking results with minimal effort, making it ideal for both casual users and professionals.  
