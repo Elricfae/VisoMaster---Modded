@@ -56,18 +56,29 @@ class FrameWorker(threading.Thread):
             with self.main_window.models_processor.model_lock:
                 video_control_actions.update_parameters_and_control_from_marker(self.main_window, self.frame_number)
             self.parameters = self.main_window.parameters.copy()
+            current_control_state = self.main_window.control.copy()
             # Check if view mask or face compare checkboxes are checked
             self.is_view_face_compare = self.main_window.faceCompareCheckBox.isChecked() 
             self.is_view_face_mask = self.main_window.faceMaskCheckBox.isChecked() 
 
-            # Process the frame with model inference
-            # print(f"Processing frame {self.frame_number}")
-            if self.main_window.swapfacesButton.isChecked() or self.main_window.editFacesButton.isChecked() or self.main_window.control['FrameEnhancerEnableToggle']:
+            # Determine if any processing is needed
+            needs_processing = (
+                self.main_window.swapfacesButton.isChecked() or
+                self.main_window.editFacesButton.isChecked() or
+                self.main_window.control['FrameEnhancerEnableToggle']
+            )
+
+            if needs_processing:
+                if not self.frame.flags['C_CONTIGUOUS']: # Ensure input frame is C-contiguous
+                    self.frame = np.ascontiguousarray(self.frame)
+                # process_frame returns BGR, uint8
                 self.frame = self.process_frame()
+                # Ensure output is C-contiguous for Qt display
+                self.frame = np.ascontiguousarray(self.frame)
             else:
                 # Img must be in BGR format
                 self.frame = self.frame[..., ::-1]  # Swap the channels from RGB to BGR
-            self.frame = np.ascontiguousarray(self.frame)
+                self.frame = np.ascontiguousarray(self.frame)
 
             # Display the frame if processing is still active
 
@@ -129,21 +140,21 @@ class FrameWorker(threading.Thread):
             # if x is smaller, set x to 512
             if img_x <= img_y:
                 new_height = int(512*img_y/img_x)
-                tscale = v2.Resize((new_height, 512), antialias=False)
+                tscale = v2.Resize((new_height, 512), antialias=True)
             else:
                 new_height = 512
-                tscale = v2.Resize((new_height, int(512*img_x/img_y)), antialias=False)
+                tscale = v2.Resize((new_height, int(512*img_x/img_y)), antialias=True)
 
             img = tscale(img)
 
         elif img_x<512:
             new_height = int(512*img_y/img_x)
-            tscale = v2.Resize((new_height, 512), antialias=False)
+            tscale = v2.Resize((new_height, 512), antialias=True)
             img = tscale(img)
 
         elif img_y<512:
             new_height = 512
-            tscale = v2.Resize((new_height, int(512*img_x/img_y)), antialias=False)
+            tscale = v2.Resize((new_height, int(512*img_x/img_y)), antialias=True)
             img = tscale(img)
 
         control = self.main_window.control.copy()
@@ -171,79 +182,79 @@ class FrameWorker(threading.Thread):
                 face_kps_5 = kpss_5[i]
                 face_kps_all = kpss[i]
                 face_emb, _ = self.models_processor.run_recognize_direct(img, face_kps_5, control['SimilarityTypeSelection'], control['RecognitionModelSelection'])
-                det_faces_data.append({'kps_5': face_kps_5, 'kps_all': face_kps_all, 'embedding': face_emb, 'bbox': bboxes[i]})
+                det_faces_data.append({'kps_5': face_kps_5, 'kps_all': face_kps_all, 'embedding': face_emb, 'bbox': bboxes[i], 'original_face': None, 'swap_mask': None})
         
         compare_mode = self.is_view_face_mask or self.is_view_face_compare
         
         if det_faces_data:
             # Loop through target faces to see if they match our found face embeddings
-            for i, fface in enumerate(det_faces_data):
-                # Flag: nur den besten Match swappen?
-                best_only = control['SwapOnlyBestMatchEnableToggle']
+            best_only = control['SwapOnlyBestMatchEnableToggle']
 
-                if best_only:
-                    # ------------------
-                    # Best-Only Modus
-                    # ------------------
-                    best_sim    = -1.0
-                    best_target = None
-                    best_params = None
+            if best_only:
+                # ------ Best-Only pro target_face ------
+                for _, target_face in self.main_window.target_faces.items():
+                    params = ParametersDict(
+                        self.parameters[target_face.face_id],
+                        self.main_window.default_parameters
+                    )
+                    #self.set_scaling_transforms(params)
+                    if not (self.main_window.swapfacesButton.isChecked()
+                            or self.main_window.editFacesButton.isChecked()):
+                        continue
 
-                    for _, target_face in self.main_window.target_faces.items():
-                        params = ParametersDict(
-                            self.parameters[target_face.face_id],
-                            self.main_window.default_parameters
-                        )
-                        #self.set_scaling_transforms(params)
-                        if not (self.main_window.swapfacesButton.isChecked()
-                                or self.main_window.editFacesButton.isChecked()):
-                            continue
+                    # Finde innerhalb aller det_faces_data das fface mit der höchsten Ähnlichkeit
+                    best_sim = -1.0
+                    best_fface = None
+                    arcface_model = self.models_processor.get_arcface_model(
+                        params['SwapModelSelection']
+                    )
+                    for fface in det_faces_data:
 
                         sim = self.models_processor.findCosineDistance(
                             fface['embedding'],
                             target_face.get_embedding(control['RecognitionModelSelection'])
                         )
                         if sim >= params['SimilarityThresholdSlider'] and sim > best_sim:
-                            best_sim    = sim
-                            best_target = target_face
-                            best_params = params
+                            best_sim   = sim
+                            best_fface = fface
 
-                    if best_target is not None:
-                        # hier führst Du genau einen Swap mit best_target durch
-                        parameters = best_params
-                        arcface_model = self.models_processor.get_arcface_model(
-                            parameters['SwapModelSelection']
-                        )
-                        dfm_model = parameters['DFMModelSelection']
+                    # Wenn ein brauchbarer fface gefunden wurde, nur diesen swappen
+                    if best_fface is not None:
                         s_e = None
-                        if self.main_window.swapfacesButton.isChecked():
-                            if parameters['SwapModelSelection'] != 'DeepFaceLive (DFM)':
-                                s_e = best_target.assigned_input_embedding.get(arcface_model, None)
+                        if self.main_window.swapfacesButton.isChecked() and \
+                           params['SwapModelSelection'] != 'DeepFaceLive (DFM)':
+                            s_e = target_face.assigned_input_embedding.get(arcface_model, None)
                             if s_e is not None and np.isnan(s_e).any():
                                 s_e = None
-                        img, fface['original_face'], fface['swap_mask'] = self.swap_core(
-                            img, fface['kps_5'], fface['kps_all'],
+                        img, best_fface['original_face'], best_fface['swap_mask'] = self.swap_core(
+                            img,
+                            best_fface['kps_5'],
+                            best_fface['kps_all'],
                             s_e=s_e,
-                            t_e=best_target.get_embedding(arcface_model),
-                            parameters=parameters, control=control,
-                            dfm_model=dfm_model
+                            t_e=target_face.get_embedding(arcface_model),
+                            parameters=params,
+                            control=control,
+                            dfm_model=params['DFMModelSelection']
                         )
                         # ggf. Makeup
-                        if (self.main_window.editFacesButton.isChecked()
-                            and any(parameters[f] for f in (
+                        if self.main_window.editFacesButton.isChecked() and any(
+                            params[f] for f in (
                                 'FaceMakeupEnableToggle',
                                 'HairMakeupEnableToggle',
                                 'EyeBrowsMakeupEnableToggle',
                                 'LipsMakeupEnableToggle'
-                            ))):
+                            )
+                        ):
                             img = self.swap_edit_face_core_makeup(
-                                img, fface['kps_all'], parameters, control
+                                img,
+                                best_fface['kps_all'],
+                                params,
+                                control
                             )
 
-                else:
-                    # ----------------------------------------
-                    # Original-Modus: alle matches swappen
-                    # ----------------------------------------
+            else:
+                # ------ Original-Modus: alle fface ↔ alle target_face prüfen ------
+                for fface in det_faces_data:
                     for _, target_face in self.main_window.target_faces.items():
                         params = ParametersDict(
                             self.parameters[target_face.face_id],
@@ -261,36 +272,43 @@ class FrameWorker(threading.Thread):
                         if sim < params['SimilarityThresholdSlider']:
                             continue
 
-                        # Keypoint-Anpassung
+                        # Keypoint-Anpassung und Swap wie bisher
                         #fface['kps_5'] = self.keypoints_adjustments(fface['kps_5'], params)
                         arcface_model = self.models_processor.get_arcface_model(
                             params['SwapModelSelection']
                         )
-                        dfm_model = params['DFMModelSelection']
                         s_e = None
-                        if self.main_window.swapfacesButton.isChecked():
-                            if params['SwapModelSelection'] != 'DeepFaceLive (DFM)':
-                                s_e = target_face.assigned_input_embedding.get(arcface_model, None)
+                        if self.main_window.swapfacesButton.isChecked() and \
+                           params['SwapModelSelection'] != 'DeepFaceLive (DFM)':
+                            s_e = target_face.assigned_input_embedding.get(arcface_model, None)
                             if s_e is not None and np.isnan(s_e).any():
                                 s_e = None
 
                         img, fface['original_face'], fface['swap_mask'] = self.swap_core(
-                            img, fface['kps_5'], fface['kps_all'],
+                            img,
+                            fface['kps_5'],
+                            fface['kps_all'],
                             s_e=s_e,
                             t_e=target_face.get_embedding(arcface_model),
-                            parameters=params, control=control,
-                            dfm_model=dfm_model
+                            parameters=params,
+                            control=control,
+                            dfm_model=params['DFMModelSelection']
                         )
 
-                        if (self.main_window.editFacesButton.isChecked()
-                            and any(params[f] for f in (
+                        # ggf. Makeup
+                        if self.main_window.editFacesButton.isChecked() and any(
+                            params[f] for f in (
                                 'FaceMakeupEnableToggle',
                                 'HairMakeupEnableToggle',
                                 'EyeBrowsMakeupEnableToggle',
                                 'LipsMakeupEnableToggle'
-                            ))):
+                            )
+                        ):
                             img = self.swap_edit_face_core_makeup(
-                                img, fface['kps_all'], params, control
+                                img,
+                                fface['kps_all'],
+                                params,
+                                control
                             )
                         
         if control['ManualRotationEnableToggle']:
@@ -311,12 +329,15 @@ class FrameWorker(threading.Thread):
             img = self.enhance_core(img, control=control)
         
         if img_x < 512 or img_y < 512:
-            tscale_back = v2.Resize((img_y, img_x), antialias=False)
+            tscale_back = v2.Resize((img_y, img_x), antialias=True)
             img = tscale_back(img)
 
         img = img.permute(1,2,0)
         img = img.cpu().numpy()
         # RGB to BGR
+        if not img.flags['C_CONTIGUOUS']:
+            img = np.ascontiguousarray(img)
+            
         return img[..., ::-1]
 
     def _apply_denoiser_pass(self, img: torch.Tensor, control: dict, pass_suffix: str) -> torch.Tensor:
@@ -331,19 +352,19 @@ class FrameWorker(threading.Thread):
 
             # Determine mode and parameters for the current pass from UI controls
             denoiser_mode_key = f'DenoiserModeSelection{pass_suffix}'
-            denoiser_mode_val = control.get(denoiser_mode_key, "Full Restore (DDIM)")
+            denoiser_mode_val = control.get(denoiser_mode_key, "Single Step (Fast)")
             
             #denoiser_post_blur_sigma = float(control.get('DenoiserPostBlurSigmaDecimalSlider', 0.5))
             #denoiser_post_sharpen_strength = float(control.get('DenoiserPostSharpenStrengthDecimalSlider', 0.25))
 
             ddim_steps_key = f'DenoiserDDIMStepsSlider{pass_suffix}'
-            ddim_steps_val = int(control.get(ddim_steps_key, 5))
+            ddim_steps_val = int(control.get(ddim_steps_key, 20))
 
             cfg_scale_key = f'DenoiserCFGScaleDecimalSlider{pass_suffix}'
             cfg_scale_val = float(control.get(cfg_scale_key, 1.0))
 
             single_step_t_key = f'DenoiserSingleStepTimestepSlider{pass_suffix}'
-            single_step_t_val = int(control.get(single_step_t_key, 0))
+            single_step_t_val = int(control.get(single_step_t_key, 1))
 
             # Check if a K/V file is actually selected. If not, skip.
             # Denoiser will be skipped if K/V is not selected but exclusive path is on,
@@ -689,7 +710,6 @@ class FrameWorker(threading.Thread):
         t_e = t_e if isinstance(t_e, np.ndarray) else []
         parameters = parameters or {}
         control = control or {}
-        # parameters = self.parameters.copy()
         swapper_model = parameters['SwapModelSelection']
 
         tform = self.get_face_similarity_tform(swapper_model, kps_5)
@@ -765,9 +785,6 @@ class FrameWorker(threading.Thread):
         #FaceEditmaskOnes = swap_mask.clone()
         
         swap = torch.clamp(swap, 0.0, 255.0)
-#        swap_original = swap.clone() 
-#        swap_restorecalc = swap.clone()
-#        swap_restorecalc2 = swap.clone()
 
 
         # --- Apply UNet Denoiser to the swapped face (before restorers) ---
@@ -818,10 +835,10 @@ class FrameWorker(threading.Thread):
             swap_mask = gauss(swap_mask)
             
         mouth = 0
-        #BgExclude = 0
+        BgExclude = 0
         BgExcludeOccluder = 0
 
-        if parameters["FaceParserEnableToggle"] or (parameters["DFLXSegEnableToggle"] and parameters["DFLXSeg2EnableToggle"] and parameters["DFLXSegSizeSlider"] != parameters["DFLXSeg2SizeSlider"] and (parameters["DFLXSegBGEnableToggle"] or parameters["XSegMouthEnableToggle"])) or (parameters["TransferTextureEnableToggle"] and parameters["ExcludeMaskEnableToggle"]):
+        if parameters["FaceParserEnableToggle"] or (parameters["DFLXSegEnableToggle"] and parameters["DFLXSeg2EnableToggle"] and parameters["DFLXSegSizeSlider"] != parameters["DFLXSeg2SizeSlider"]) or (parameters["TransferTextureEnableToggle"] and parameters["ExcludeMaskEnableToggle"]):
             out = self.models_processor.process_masks_and_masks(
                 #swap_restorecalc,
                 swap,
@@ -925,10 +942,15 @@ class FrameWorker(threading.Thread):
             TransferTextureKernelSizeSlider = 12 #parameters['TransferTextureKernelSizeSlider']
             TransferTextureSigmaDecimalSlider = 4.00 # parameters['TransferTextureSigmaDecimalSlider']
             TransferTextureWeightSlider = 1 #parameters['TransferTextureWeightNewDecimalSlider']
-            TransferTextureLambdSlider = 2 #8 #parameters['TransferTextureLambdSlider']
+            #TransferTextureLambdSlider = parameters['TransferTextureLambdSlider'] #2 #8 #
             TransferTexturePhiDecimalSlider = 9.7 #parameters['TransferTexturePhiDecimalSlider']
             TransferTextureGammaDecimalSlider = 0.5 #parameters['TransferTextureGammaDecimalSlider']
-            TransferTextureThetaSlider = 1 #8 #parameters['TransferTextureThetaSlider']
+            if parameters['TransferTextureModeEnableToggle']:
+                TransferTextureLambdSlider = parameters['TransferTextureLambdSlider']
+                TransferTextureThetaSlider = parameters['TransferTextureThetaSlider']
+            else:
+                TransferTextureLambdSlider = 2
+                TransferTextureThetaSlider = 1  
             TextureFeatureLayerTypeSelection = 'combo_relu3_3_relu3_1' #parameters['TextureFeatureLayerTypeSelection']
             '''
             TransferTextureKernelSizeSlider = parameters['TransferTextureKernelSizeSlider']
@@ -964,7 +986,8 @@ class FrameWorker(threading.Thread):
 
             mask = torch.ones((128, 128), dtype=torch.uint8, device=self.models_processor.device)
             mask = mask.unsqueeze(0)
-            mask_texture = mask.clone()
+            #mask_texture = mask.clone()
+            mask_texture = t128_mask(calc_mask.clone())
             #mask = 1-mask
             if parameters["ExcludeOriginalVGGMaskEnableToggle"]:
                 swapped_face_resized = swap.clone()
@@ -1692,7 +1715,7 @@ class FrameWorker(threading.Thread):
         if theta_count == 10:
             theta_values = torch.tensor([math.pi/4], device=image.device)
         else:
-            theta_values = torch.arange(8, device=image.device) * (math.pi/8) #torch.linspace(0, math.pi, theta_count+1, device=image.device)[:-1]
+            theta_values = torch.linspace(0, math.pi, theta_count+1, device=image.device)[:-1] #torch.arange(8, device=image.device) * (math.pi/8) #
             #print("theta_values: ", theta_values)
         # 4) Einziger Gabor-Filter-Aufruf
         magnitude = self.apply_gabor_filter_torch(
