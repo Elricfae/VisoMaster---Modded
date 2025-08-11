@@ -815,6 +815,7 @@ class FrameWorker(threading.Thread):
             swap = swap * editor_mask + original_face_512 * (1 - editor_mask)
             swap = self.swap_edit_face_core(swap, kps, parameters, control)
             #swap_mask = FaceEditmaskOnes
+        swap_original = swap.clone()
         
         # Restorer2
         if parameters["FaceRestorerEnable2Toggle"]:
