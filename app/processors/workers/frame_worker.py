@@ -797,13 +797,11 @@ class FrameWorker(threading.Thread):
         if parameters['FaceExpressionEnableToggleBoth'] and (parameters['FaceExpressionLipsToggle'] or parameters['FaceExpressionEyesToggle']):
             swap = self.apply_face_expression_restorerBoth(original_face_512, swap, parameters)        
         
-        swap_original = swap.clone()
-        
         # Restorer
         if parameters["FaceRestorerEnableToggle"]:
-            swap_restorecalc = self.models_processor.apply_facerestorer(swap, parameters['FaceRestorerDetTypeSelection'], parameters['FaceRestorerTypeSelection'], parameters["FaceRestorerBlendSlider"], control['DetectorScoreSlider'])
-            alpha_restorer = float(parameters["FaceRestorerBlendSlider"])/100.0
-            swap = torch.add(torch.mul(swap_restorecalc, alpha_restorer), torch.mul(swap_original, 1 - alpha_restorer))
+            swap = self.models_processor.apply_facerestorer(swap, parameters['FaceRestorerDetTypeSelection'], parameters['FaceRestorerTypeSelection'], parameters["FaceRestorerBlendSlider"], control['DetectorScoreSlider'])
+            #alpha_restorer = float(parameters["FaceRestorerBlendSlider"])/100.0
+            #swap = torch.add(torch.mul(swap_restorecalc, alpha_restorer), torch.mul(swap_original, 1 - alpha_restorer))
 
         # --- Second Denoiser Pass (after expression restorer) ---
         if control.get('DenoiserAfterFirstRestorerToggle', False):
@@ -815,13 +813,12 @@ class FrameWorker(threading.Thread):
             swap = swap * editor_mask + original_face_512 * (1 - editor_mask)
             swap = self.swap_edit_face_core(swap, kps, parameters, control)
             #swap_mask = FaceEditmaskOnes
-        swap_original = swap.clone()
         
         # Restorer2
         if parameters["FaceRestorerEnable2Toggle"]:
-            swap_restorecalc2 = self.models_processor.apply_facerestorer(swap, parameters['FaceRestorerDetType2Selection'], parameters['FaceRestorerType2Selection'], parameters["FaceRestorerBlend2Slider"], control['DetectorScoreSlider'])
-            alpha_restorer2 = float(parameters["FaceRestorerBlend2Slider"])/100.0
-            swap = torch.add(torch.mul(swap_restorecalc2, alpha_restorer2), torch.mul(swap_original, 1 - alpha_restorer2))
+            swap = self.models_processor.apply_facerestorer(swap, parameters['FaceRestorerDetType2Selection'], parameters['FaceRestorerType2Selection'], parameters["FaceRestorerBlend2Slider"], control['DetectorScoreSlider'])
+            #alpha_restorer2 = float(parameters["FaceRestorerBlend2Slider"])/100.0
+            #swap = torch.add(torch.mul(swap_restorecalc2, alpha_restorer2), torch.mul(swap_original2, 1 - alpha_restorer2))
         
         # --- Third Denoiser Pass (after first restorers) ---
         if control.get('DenoiserAfterRestorersToggle', False):
@@ -1373,7 +1370,8 @@ class FrameWorker(threading.Thread):
         eyes_normalize_threshold = parameters['FaceExpressionNormalizeEyesThresholdDecimalSliderBoth'] 
         flag_lip_retargeting = parameters['FaceExpressionRetargetingLipsEnableToggleBoth'] 
         lip_retargeting_multiplier = parameters['FaceExpressionRetargetingLipsMultiplierDecimalSliderBoth']
-
+        eyes_normalize_max = parameters['FaceExpressionNormalizeEyesMaxDecimalSliderBoth']
+        
         flag_relative_motion = True #inf_cfg.flag_relative_motion
         flag_stitching = True #inf_cfg.flag_stitching
         flag_pasteback = True #inf_cfg.flag_pasteback
@@ -1402,21 +1400,19 @@ class FrameWorker(threading.Thread):
             if combined_lip_ratio_tensor_before_animation[0][0] >= lip_normalize_threshold:
                 lip_delta_before_animation = self.models_processor.lp_retarget_lip(x_s, combined_lip_ratio_tensor_before_animation)
                 
-        # Compare lmk open ratio to eyes open ratio
+        # Compare eyes close ratio to the normalize slider
         if flag_normalize_eyes and flag_relative_motion and source_lmk is not None:
             combined_eyes_ratio_tensor_before_animation = None
             c_d_eyes_normalize = c_d_eyes_lst
-            combined_eyes_ratio_normalize = faceutil.calc_combined_eye_ratio(c_d_eyes_normalize, source_lmk, device=self.models_processor.device)
-            lefteye = max(combined_eyes_ratio_normalize[0][1].to('cpu').numpy(), 0.16)
-            righteye = max(combined_eyes_ratio_normalize[0][0].to('cpu').numpy(), 0.16)
-            lmk_normalize = max(combined_eyes_ratio_normalize[0][2].to('cpu').numpy(), 0.16)
-            botheyes = min((lefteye + righteye) / 2, lmk_normalize) # Take the average ratio from both eyes or the landmarks if smaller
-            if lmk_normalize >= lefteye or lmk_normalize >= righteye: # If the array is bigger than the source of eather eye, could be AND
-                c_d_eyes_before_animation = np.array([[botheyes, botheyes]], dtype=np.float32) 
+            eyes_ratio = np.array([c_d_eyes_normalize[0][0]], dtype=np.float32)
+            eyes_ratio_normalize = max(eyes_ratio, 0.10) # Closed eye is 0.1, inferior to that the eyelids overlap
+            eyes_ratio_l = min(c_d_eyes_normalize[0][0], eyes_normalize_max)
+            eyes_ratio_r = min(c_d_eyes_normalize[0][1], eyes_normalize_max)
+            eyes_ratio_max = np.array([[eyes_ratio_l, eyes_ratio_r]], dtype=np.float32)
+            if eyes_ratio_normalize > eyes_normalize_threshold: # If the close ratio is bigger than the threshold
+                combined_eyes_ratio_normalize = faceutil.calc_combined_eye_ratio_norm(eyes_ratio_max, source_lmk, device=self.models_processor.device)
             else:
-                c_d_eyes_before_animation = np.array([[lmk_normalize, lmk_normalize]], dtype=np.float32)
-            if lmk_normalize >= eyes_normalize_threshold:
-                combined_eyes_ratio_tensor_before_animation = faceutil.calc_combined_eye_ratio(c_d_eyes_before_animation, source_lmk, device=self.models_processor.device)
+                combined_eyes_ratio_normalize = faceutil.calc_combined_eye_ratio(eyes_ratio_max, source_lmk, device=self.models_processor.device)
 
         delta_new_eyes = x_s_info['exp'].clone()
         delta_new_lips = x_s_info['exp'].clone()
@@ -1441,8 +1437,8 @@ class FrameWorker(threading.Thread):
             if flag_eye_retargeting and source_lmk is not None:
                 c_d_eyes_i = c_d_eyes_lst
                 combined_eye_ratio_tensor = faceutil.calc_combined_eye_ratio(c_d_eyes_i, source_lmk, device=self.models_processor.device)
-                if flag_normalize_eyes and combined_eyes_ratio_tensor_before_animation is not None: # Use the normalized eye ratio
-                    combined_eye_ratio_tensor = combined_eyes_ratio_tensor_before_animation * eye_retargeting_multiplier
+                if flag_normalize_eyes and combined_eyes_ratio_normalize is not None: # Use the normalized eye ratio
+                    combined_eye_ratio_tensor = combined_eyes_ratio_normalize * eye_retargeting_multiplier
                     eyes_delta = self.models_processor.lp_retarget_eye(x_s, combined_eye_ratio_tensor, parameters["FaceEditorTypeSelection"])
                 else:
                     combined_eye_ratio_tensor = combined_eye_ratio_tensor * eye_retargeting_multiplier
@@ -1790,65 +1786,6 @@ class FrameWorker(threading.Thread):
             kernels.append(gb)
 
         return torch.stack(kernels).unsqueeze(1)  # → [N, 1, k, k]
-
-    def face_restorer_auto(self, original_face_512, swap_original, swap, alpha, adjust_sharpness, scale_factor, CommandLineDebugEnableToggle, swap_mask):
-        
-        #swap_mask = torch.where(swap_mask > 0.5, 1, 0)
-        original_face_512_autorestore = original_face_512.clone().float()
-        #original_face_512 = torch.where(swap_mask, original_face_512, 0)        
-        #original_face_512 = original_face_512 * swap_mask
-
-        swap_restorecalc = swap.clone()
-        #swap = torch.where(swap_mask, swap, original_face_512)
-        #swap = swap * swap_mask
-
-        swap_original_autorestore = swap_original.clone()
-        #swap_original = torch.where(swap_mask, swap_original, original_face_512)
-        #swap_original = swap_original * swap_mask
-
-        scores_original = self.sharpness_score(original_face_512)
-        score_new_original = scores_original["combined"].item()*100 + adjust_sharpness/10
-        alpha = 0.5
-        max_iterations = 7
-        alpha_min, alpha_max = 0.0, 1.0
-        tolerance = 0.2
-        min_alpha_change = 0.05
-        iteration = 0
-        prev_alpha = alpha
-        iteration_blur = 0
-
-        while iteration < max_iterations:
-            swap2 = swap * alpha + swap_original * (1 - alpha)
-            #swap2 = swap2 * swap_mask
-            swap2_masked = swap2.clone() #torch.where(swap_mask > 0.01, swap2, original_face_512)
-            scores_swap = self.sharpness_score(swap2_masked)
-            score_new_swap = scores_swap["combined"].item()*100
-            sharpness_diff = score_new_swap - score_new_original
-            #print("Restore Blend: ", prev_alpha*100, "Iterations: ", iteration+1, "orig/swap: ", score_new_original, score_new_swap, sharpness_diff)#, tenengrad_thresh, comb_weight)
-            if abs(sharpness_diff) < tolerance:
-                break
-
-            if sharpness_diff < 0:
-                alpha_min = alpha
-                alpha = (alpha + alpha_max) / 2
-            else:
-                alpha_max = alpha
-                alpha = (alpha + alpha_min) / 2
-
-            if abs(prev_alpha - alpha) < min_alpha_change:
-                prev_alpha = (prev_alpha + alpha) / 2
-                break
-
-            prev_alpha = alpha
-            iteration += 1
-
-        if CommandLineDebugEnableToggle:
-            #print(f"Final: alpha={prev_alpha}, sharp_original={sharpness_original}, sharp_swap_final={sharpness_swap}, iterations={iteration}")
-            print("Restore Blend: ", prev_alpha*100, "Iterations: ", iteration+1)#, tenengrad_thresh, comb_weight)
-            #print("Varianz Laplacian:", scores_swap["var_lap"].item(), "Thresholded Tenengrad:", scores_swap["ttengrad"].item(), "Combined Score:", score_new_swap)        
-            #print("Varianz Laplacian:", scores_original["var_lap"].item(), "Thresholded Tenengrad:", scores_original["ttengrad"].item(), "Combined Score:", score_new_original)        
-
-        return prev_alpha, iteration_blur
         
     def sharpness_score(
         self,
