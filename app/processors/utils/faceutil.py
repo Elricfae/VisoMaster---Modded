@@ -1830,7 +1830,21 @@ def calc_combined_eye_ratio(c_d_eyes_i, source_lmk, device='cuda'):
     c_s_eyes = calc_eye_close_ratio(source_lmk[None])
     c_s_eyes_tensor = torch.from_numpy(c_s_eyes).float().to(device)
     #c_d_eyes_i_tensor = torch.Tensor([c_d_eyes_i[0][0]]).reshape(1, 1).to(device)
-    c_d_eyes_i_numpy = np.array([c_d_eyes_i[0][0]], dtype=np.float32)  # Assicurati che sia un array NumPy
+    c_d_eyes_i_numpy_m = np.array([c_d_eyes_i[0][0]], dtype=np.float32)  # Assicurati che sia un array NumPy
+    c_d_eyes_i_numpy = np.array([max(c_d_eyes_i_numpy_m, 0.10)], dtype=np.float32) #Mini 0.1 otherwise eyelids overlap
+    c_d_eyes_i_tensor = torch.from_numpy(c_d_eyes_i_numpy).reshape(1, 1).to(device)
+    # [c_s,eyes, c_d,eyes,i]
+    combined_eye_ratio_tensor = torch.cat([c_s_eyes_tensor, c_d_eyes_i_tensor], dim=1)
+
+    return combined_eye_ratio_tensor
+    
+def calc_combined_eye_ratio_norm(c_d_eyes_i, source_lmk, device='cuda'):
+    c_s_eyes = calc_eye_close_ratio(source_lmk[None])
+    c_s_eyes_tensor = torch.from_numpy(c_s_eyes).float().to(device)
+    #c_d_eyes_i_tensor = torch.Tensor([c_d_eyes_i[0][0]]).reshape(1, 1).to(device)
+    c_d_eyes_i_numpy_l = np.array([c_d_eyes_i[0][0]], dtype=np.float32)  # Assicurati che sia un array NumPy
+    c_d_eyes_i_numpy_r = np.array([c_d_eyes_i[0][1]], dtype=np.float32)  # Assicurati che sia un array NumPy
+    c_d_eyes_i_numpy = np.array([max(min(c_d_eyes_i_numpy_l, c_d_eyes_i_numpy_r), 0.16)], dtype=np.float32)
     c_d_eyes_i_tensor = torch.from_numpy(c_d_eyes_i_numpy).reshape(1, 1).to(device)
     # [c_s,eyes, c_d,eyes,i]
     combined_eye_ratio_tensor = torch.cat([c_s_eyes_tensor, c_d_eyes_i_tensor], dim=1)
@@ -1861,6 +1875,7 @@ def concat_feat(kp_source: torch.Tensor, kp_driving: torch.Tensor) -> torch.Tens
     assert bs_src == bs_dri, 'batch size must be equal'
 
     feat = torch.cat([kp_source.view(bs_src, -1), kp_driving.view(bs_dri, -1)], dim=1)
+    
     return feat
 
 def apply_laplace_filter(img):
