@@ -155,7 +155,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
         'FaceExpressionNormalizeEyesThresholdDecimalSliderBoth': {
             'level': 5,
             'label': 'Normalize Eyes Threshold',
-            'min_value': '0.00',
+            'min_value': '0.10',
             'max_value': '1.00',
             'default': '0.40',
             'decimals': 2,
@@ -163,6 +163,18 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'FaceExpressionNormalizeEyesEnableToggleBoth & FaceExpressionEnableToggleBoth & FaceExpressionEyesToggle & FaceExpressionRetargetingEyesEnableToggleBoth',
             'requiredToggleValue': True,
             'help': 'Threshold value for Normalize Eyes.'
+        },     
+        'FaceExpressionNormalizeEyesMaxDecimalSliderBoth': {
+            'level': 5,
+            'label': 'Max eye open ratio',
+            'min_value': '0.00',
+            'max_value': '1.00',
+            'default': '0.50',
+            'decimals': 2,
+            'step': 0.01,
+            'parentToggle': 'FaceExpressionNormalizeEyesEnableToggleBoth & FaceExpressionEnableToggleBoth & FaceExpressionEyesToggle & FaceExpressionRetargetingEyesEnableToggleBoth',
+            'requiredToggleValue': True,
+            'help': 'Max eye open ratio.'
         },     
         'FaceExpressionLipsToggle': {
             'level': 2,
