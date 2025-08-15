@@ -162,7 +162,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'step': 0.01,
             'parentToggle': 'FaceExpressionNormalizeEyesEnableToggleBoth & FaceExpressionEnableToggleBoth & FaceExpressionEyesToggle & FaceExpressionRetargetingEyesEnableToggleBoth',
             'requiredToggleValue': True,
-            'help': 'Threshold value for Normalize Eyes.'
+            'help': 'Threshold for the eye open ratio, it will dictate at wich open/close ratio it uses the modified faceutil function.'
         },     
         'FaceExpressionNormalizeEyesMaxDecimalSliderBoth': {
             'level': 5,
@@ -174,7 +174,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'step': 0.01,
             'parentToggle': 'FaceExpressionNormalizeEyesEnableToggleBoth & FaceExpressionEnableToggleBoth & FaceExpressionEyesToggle & FaceExpressionRetargetingEyesEnableToggleBoth',
             'requiredToggleValue': True,
-            'help': 'Max eye open ratio.'
+            'help': 'Max eye open ratio that the target will have (<0.5 is best).'
         },     
         'FaceExpressionLipsToggle': {
             'level': 2,
