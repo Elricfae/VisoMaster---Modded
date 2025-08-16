@@ -28,7 +28,7 @@ def change_threads_number(main_window: 'MainWindow', new_threads_number):
 def change_theme(main_window: 'MainWindow', new_theme):
 
     def get_style_data(filename, theme='dark', custom_colors=None):
-        custom_colors = custom_colors or {"primary": "#4facc9"}
+        custom_colors = custom_colors or {"primary": "#4090a3"}
         with open(f"app/ui/styles/{filename}", "r") as f: # pylint: disable=unspecified-encoding
             _style = f.read()
             _style = qdarktheme.load_stylesheet(theme=theme, custom_colors=custom_colors)+'\n'+_style
@@ -45,6 +45,20 @@ def change_theme(main_window: 'MainWindow', new_theme):
     elif new_theme == "Dark-Blue":
         _style = get_style_data('dark_styles.qss', 'dark',) + qdarkstyle.load_stylesheet() # Applica lo stile dark-blue 
 
+    elif new_theme == "True-Dark":
+        _style = get_style_data('true_dark.qss', 'dark')
+
+    elif new_theme == "Solarized-Dark":
+        _style = get_style_data('solarized_dark.qss', 'dark')
+    elif new_theme == "Solarized-Light":
+        _style = get_style_data('solarized_light.qss', 'light')
+    elif new_theme == "Dracula":
+        _style = get_style_data('dracula.qss', 'dark')
+    elif new_theme == "Nord":
+        _style = get_style_data('nord.qss', 'dark')
+    elif new_theme == "Gruvbox":
+        _style = get_style_data('gruvbox.qss', 'dark')
+
     app.setStyleSheet(_style)
 
     main_window.update()  # Aggiorna la finestra principale
@@ -54,16 +68,16 @@ def set_video_playback_fps(main_window: 'MainWindow', set_video_fps=False):
     if set_video_fps and main_window.video_processor.media_capture:
         main_window.parameter_widgets['VideoPlaybackCustomFpsSlider'].set_value(main_window.video_processor.fps)
 
-#def toggle_virtualcam(main_window: 'MainWindow', toggle_value=False):
-#    video_processor = main_window.video_processor
-#    if toggle_value:
-#        video_processor.enable_virtualcam()
-#    else:
-#        video_processor.disable_virtualcam()
+def toggle_virtualcam(main_window: 'MainWindow', toggle_value=False):
+    video_processor = main_window.video_processor
+    if toggle_value:
+        video_processor.enable_virtualcam()
+    else:
+        video_processor.disable_virtualcam()
 
-#def enable_virtualcam(main_window: 'MainWindow', backend):
-#    print('backend', backend)
-#    main_window.video_processor.enable_virtualcam(backend=backend)
+def enable_virtualcam(main_window: 'MainWindow', backend):
+    print('backend', backend)
+    main_window.video_processor.enable_virtualcam(backend=backend)
 
 def handle_denoiser_state_change(main_window: 'MainWindow', new_value_of_toggle_that_just_changed: bool, control_name_that_changed: str):
     """

@@ -6,8 +6,8 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
         'ThemeSelection': {
             'level': 1,
             'label': 'Theme',
-            'options': ['Dark', 'Dark-Blue', 'Light'],
-            'default': 'Dark',
+            'options': ['True-Dark', 'Dark', 'Dark-Blue', 'Light', 'Solarized-Dark', 'Solarized-Light', 'Dracula', 'Nord', 'Gruvbox'],
+            'default': 'True-Dark',
             'help': 'Select the theme to be used',
             'exec_function': control_actions.change_theme,
             'exec_function_args': [],
@@ -76,7 +76,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
         'DetectorModelSelection': {
             'level': 1,
             'label': 'Face Detect Model',
-            'options': ['RetinaFace', 'Yolov8', 'SCRFD'],
+            'options': ['RetinaFace', 'Yolov8', 'SCRFD', 'Yunet'],
             'default': 'RetinaFace',
             'help': 'Select the face detection model to use for detecting faces in the input image or video.'
         },
@@ -216,6 +216,56 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'help': 'Select to downscale the video to 1920*1080'
         },
     },
+    'Webcam Settings': {
+        'WebcamMaxNoSelection': {
+            'level': 2,
+            'label': 'Webcam Max No',
+            'options': ['1', '2', '3', '4', '5', '6'],
+            'default': '1',
+            'help': 'Select the maximum number of webcam streams to allow for face swapping.'
+        },
+        'WebcamBackendSelection': {
+            'level': 2,
+            'label': 'Webcam Backend',
+            'options': ['Default', 'DirectShow', 'MSMF', 'V4L', 'V4L2', 'GSTREAMER'],
+            'default': 'Default',
+            'help': 'Choose the backend for accessing webcam input.'
+        },
+        'WebcamMaxResSelection': {
+            'level': 2,
+            'label': 'Webcam Resolution',
+            'options': ['480x360', '640x480', '1280x720', '1920x1080', '2560x1440', '3840x2160'],
+            'default': '1280x720',
+            'help': 'Select the maximum resolution for webcam input.'
+        },
+        'WebCamMaxFPSSelection': {
+            'level': 2,
+            'label': 'Webcam FPS',
+            'options': ['23', '30', '60'],
+            'default': '30',
+            'help': 'Set the maximum frames per second (FPS) for webcam input.'
+        },
+    },
+    'Virtual Camera': {
+        'SendVirtCamFramesEnableToggle': {
+            'level': 1,
+            'label': 'Send Frames to Virtual Camera',
+            'default': False,
+            'help': 'Send the swapped video/webcam output to virtual camera for using in external applications',
+            'exec_function': control_actions.toggle_virtualcam,
+            'exec_function_args': [],
+        },
+        'VirtCamBackendSelection': {
+            'level': 1,
+            'label': 'Virtual Camera Backend',
+            'options': ['obs', 'unitycapture'],
+            'default': 'obs',
+            'help': 'Choose the backend based on the Virtual Camera you have set up',
+            'parentToggle': 'SendVirtCamFramesEnableToggle',
+            'requiredToggleValue': True,
+            'exec_function_args': [],
+        },
+    },
     'Face Recognition': {
         'RecognitionModelSelection': {
             'level': 1,
@@ -255,4 +305,13 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'help': 'Include all files from Subfolders when choosing Input Faces Folder'
         }
     }
+}
+
+CAMERA_BACKENDS = {
+    'Default': cv2.CAP_ANY,
+    'DirectShow': cv2.CAP_DSHOW,
+    'MSMF': cv2.CAP_MSMF,
+    'V4L': cv2.CAP_V4L,
+    'V4L2': cv2.CAP_V4L2,
+    'GSTREAMER': cv2.CAP_GSTREAMER,
 }

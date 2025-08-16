@@ -85,11 +85,14 @@ class CardButton(QPushButton):
         return card_buttons
     
 class TargetMediaCardButton(CardButton):
-    def __init__(self, media_path: str, file_type: str, media_id:str, *args, **kwargs):
+    def __init__(self, media_path: str, file_type: str, media_id:str, is_webcam=False, webcam_index=-1, webcam_backend=-1, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.media_id = media_id
         self.file_type = file_type
         self.media_path = media_path
+        self.is_webcam = is_webcam
+        self.webcam_index = webcam_index
+        self.webcam_backend = webcam_backend
         self.media_capture: cv2.VideoCapture|bool = False
         self.setCheckable(True)
         self.setToolTip(media_path)
@@ -103,12 +106,7 @@ class TargetMediaCardButton(CardButton):
         layout.addWidget(text_label)
         self.clicked.connect(self.load_media)
         # Imposta lo stylesheet solo per questo pulsante
-        self.setStyleSheet("""
-        CardButton:checked {
-            background-color: #555555;
-            border: 2px solid #1abc9c;
-        }
-        """)
+
 
         # Set the context menu policy to trigger the custom context menu on right-click
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -120,7 +118,10 @@ class TargetMediaCardButton(CardButton):
         main_window = self.main_window
         # Deselect the currently selected video
         if main_window.selected_video_button:
-            main_window.selected_video_button.toggle()  # Deselect the previous video
+            prev_btn = main_window.selected_video_button
+            prev_btn.blockSignals(True)
+            prev_btn.setChecked(False)
+            prev_btn.blockSignals(False)
             main_window.selected_video_button = False
         
         # Stop the current video processing
@@ -150,7 +151,10 @@ class TargetMediaCardButton(CardButton):
         main_window = self.main_window
         # Deselect the currently selected video
         if main_window.selected_video_button:
-            main_window.selected_video_button.toggle()  # Deselect the previous video
+            prev_btn = main_window.selected_video_button
+            prev_btn.blockSignals(True)
+            prev_btn.setChecked(False)
+            prev_btn.blockSignals(False)
             main_window.selected_video_button = False
         
         # Stop the current video processing
@@ -193,6 +197,19 @@ class TargetMediaCardButton(CardButton):
         elif self.file_type == 'image':
             frame = misc_helpers.read_image_file(self.media_path)
             max_frames_number = 0  # For an image, there is only one "frame"
+            main_window.video_processor.max_frame_number = max_frames_number
+
+        elif self.file_type == 'webcam':
+            res_width, res_height = self.main_window.control['WebcamMaxResSelection'].split('x')
+
+            media_capture = cv2.VideoCapture(self.webcam_index, self.webcam_backend)
+            media_capture.set(cv2.CAP_PROP_FRAME_WIDTH, int(res_width))
+            media_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, int(res_height))
+            max_frames_number = 999999
+            _, frame = misc_helpers.read_frame(media_capture)
+            main_window.video_processor.media_capture = media_capture
+            self.media_capture = media_capture
+            main_window.video_processor.fps = media_capture.get(cv2.CAP_PROP_FPS)
             main_window.video_processor.max_frame_number = max_frames_number
 
         if frame is not None:
@@ -238,6 +255,12 @@ class TargetMediaCardButton(CardButton):
                 list(main_window.target_faces.values())[0].click()
             common_widget_actions.refresh_frame(main_window)
             layout_actions.fit_image_to_view_onchange(main_window)
+
+        if main_window.control['SendVirtCamFramesEnableToggle'] and self.file_type!='image':
+            # Re-initialize virtualcam to reset its dimensions with that of the new video
+            main_window.video_processor.enable_virtualcam()
+
+        # list_view_actions.find_target_faces(main_window)
 
     def remove_target_media_from_list(self):
         main_window = self.main_window
@@ -481,13 +504,6 @@ class InputFaceCardButton(CardButton):
         self.setToolTip(media_path)
         self.clicked.connect(self.load_input_face)
 
-        # Imposta lo stylesheet solo per questo pulsante
-        self.setStyleSheet("""
-        CardButton:checked {
-            background-color: #555555;
-            border: 2px solid #1abc9c;
-        }
-        """)
 
         # Set the context menu policy to trigger the custom context menu on right-click
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -617,13 +633,6 @@ class EmbeddingCardButton(CardButton):
         self.setToolTip(embedding_name)
         self.clicked.connect(self.load_embedding)
 
-        # Imposta lo stylesheet solo per questo pulsante
-        self.setStyleSheet("""
-        CardButton:checked {
-            background-color: #555555;
-            border: 2px solid #1abc9c;
-        }
-        """)
 
         # Set the context menu policy to trigger the custom context menu on right-click
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -755,7 +764,68 @@ class CreateEmbeddingDialog(QtWidgets.QDialog):
             )
             self.accept()
 
+class SaveJobDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Save Job")
+        self.setWindowIcon(QtGui.QIcon(u":/media/media/visomaster_small.png"))
 
+        # Widgets
+        self.job_name_label = QtWidgets.QLabel("Job Name:")
+        self.job_name_edit = QtWidgets.QLineEdit(self)
+        self.job_name_edit.setPlaceholderText("Enter job name")
+        
+        self.set_output_name_checkbox = QtWidgets.QCheckBox("Use job name for output file name", self)
+        self.set_output_name_checkbox.setChecked(True)
+
+        self.output_name_label = QtWidgets.QLabel("Output File Name:")
+        self.output_name_edit = QtWidgets.QLineEdit(self)
+        self.output_name_edit.setPlaceholderText("Leave blank for default")
+
+        # Button box
+        QBtn = QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        self.buttonBox = QtWidgets.QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        # Layout
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.job_name_label)
+        layout.addWidget(self.job_name_edit)
+        layout.addWidget(self.set_output_name_checkbox)
+        layout.addWidget(self.output_name_label)
+        layout.addWidget(self.output_name_edit)
+        layout.addWidget(self.buttonBox)
+        self.setLayout(layout)
+
+        # Connect checkbox signal to slot
+        self.set_output_name_checkbox.toggled.connect(self._toggle_output_name_field)
+
+        # Initial state
+        self._toggle_output_name_field(self.set_output_name_checkbox.isChecked())
+
+    def _toggle_output_name_field(self, checked):
+        """Show/hide the output file name field based on checkbox state."""
+        self.output_name_label.setVisible(not checked)
+        self.output_name_edit.setVisible(not checked)
+        # Adjust dialog size hint based on visibility
+        self.adjustSize()
+
+    @property
+    def job_name(self):
+        return self.job_name_edit.text().strip()
+
+    @property
+    def use_job_name_for_output(self):
+        return self.set_output_name_checkbox.isChecked()
+
+    @property
+    def output_file_name(self):
+        # Return the output file name only if the checkbox is unchecked and the field is not empty
+        if not self.use_job_name_for_output:
+            name = self.output_name_edit.text().strip()
+            return name if name else None # Return None if empty, job_name will be used
+        return None # Return None if checkbox is checked
 
 class LoadingDialog(QtWidgets.QDialog):
     def __init__(self, message="Loading Models, please wait...\nDon't panic if it looks stuck!"):
@@ -1326,3 +1396,32 @@ class FormGroupBox(QtWidgets.QGroupBox):
         self.main_window = main_window
         self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.setFlat(True)
+
+class JobLoadingDialog(QtWidgets.QDialog):
+    def __init__(self, total_steps, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Loading Job Data...")
+        self.setWindowIcon(QtGui.QIcon(u":/media/media/visomaster_small.png"))
+        self.setWindowFlag(QtCore.Qt.WindowCloseButtonHint, False)
+        self.setModal(True)
+        self.setFixedSize(300, 120)
+
+        self.layout = QtWidgets.QVBoxLayout()
+        self.label = QtWidgets.QLabel("Loading job data...")
+        self.label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.progress_bar = QtWidgets.QProgressBar()
+        self.progress_bar.setRange(0, total_steps)
+        self.progress_bar.setValue(0)
+        self.step_label = QtWidgets.QLabel("")
+        self.step_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.progress_bar)
+        self.layout.addWidget(self.step_label)
+        self.setLayout(self.layout)
+
+    def update_progress(self, current, total, step_name):
+        self.progress_bar.setMaximum(total)
+        self.progress_bar.setValue(current)
+        self.step_label.setText(f"{step_name} ({current}/{total})")
+        QtWidgets.QApplication.processEvents()

@@ -188,7 +188,6 @@ class ModelsProcessor(QtCore.QObject):
         self.syncvec = torch.empty((1, 1), dtype=torch.float32, device=self.device)
 
         self.models: Dict[str, onnxruntime.InferenceSession | None] = {} # Allow None
-        #self.models: Dict[str, onnxruntime.InferenceSession] = {}
         self.models_path = {}
         self.models_data = {}
         for model_data in models_list:
@@ -201,7 +200,6 @@ class ModelsProcessor(QtCore.QObject):
 
         if TENSORRT_AVAILABLE:
             self.models_trt: Dict[str, TensorRTPredictor | None] = {} # Allow None
-            #self.models_trt: Dict[str, TensorRTPredictor] = {}
             self.models_trt_path = {}
             for model_data in models_trt_list:
                 model_name, model_path = model_data['model_name'], model_data['local_path']
@@ -264,22 +262,20 @@ class ModelsProcessor(QtCore.QObject):
     def load_model(self, model_name, session_options=None):
         with self.model_lock:
             self.main_window.model_loading_signal.emit()
-            # QApplication.processEvents()
-            # if not is_file_exists(self.models_path[model_name]):
-            #     download_file(model_name, self.models_path[model_name], self.models_data[model_name]['hash'], self.models_data[model_name]['url'])
-            if session_options is None:
-                model_instance = onnxruntime.InferenceSession(self.models_path[model_name], providers=self.providers)
-            else:
-                model_instance = onnxruntime.InferenceSession(self.models_path[model_name], sess_options=session_options, providers=self.providers)
+            try:
+                if session_options is None:
+                    model_instance = onnxruntime.InferenceSession(self.models_path[model_name], providers=self.providers)
+                else:
+                    model_instance = onnxruntime.InferenceSession(self.models_path[model_name], sess_options=session_options, providers=self.providers)
 
-            # Check if another thread has already loaded an instance for this model, if yes then delete the current one and return that instead
-            if self.models[model_name]:
-                del model_instance
-                gc.collect()
-                return self.models[model_name]
-            self.main_window.model_loaded_signal.emit()
-
-            return model_instance
+                # Check if another thread has already loaded an instance for this model, if yes then delete the current one and return that instead
+                if self.models[model_name]:
+                    del model_instance
+                    gc.collect()
+                    return self.models[model_name]
+                return model_instance
+            finally:
+                self.main_window.model_loaded_signal.emit()
 
     def load_dfm_model(self, dfm_model):
         with self.model_lock:
@@ -307,17 +303,18 @@ class ModelsProcessor(QtCore.QObject):
         #time.sleep(0.5)
         self.main_window.model_loading_signal.emit()
 
-        if not os.path.exists(self.models_trt_path[model_name]):
-            onnx2trt(onnx_model_path=self.models_path[model_name],
-                     trt_model_path=self.models_trt_path[model_name],
-                     precision=precision,
-                     custom_plugin_path=custom_plugin_path,
-                     verbose=False
-                    )
-        model_instance = TensorRTPredictor(model_path=self.models_trt_path[model_name], custom_plugin_path=custom_plugin_path, pool_size=self.nThreads, device=self.device, debug=debug)
-
-        self.main_window.model_loaded_signal.emit()
-        return model_instance
+        try:
+            if not os.path.exists(self.models_trt_path[model_name]):
+                onnx2trt(onnx_model_path=self.models_path[model_name],
+                         trt_model_path=self.models_trt_path[model_name],
+                         precision=precision,
+                         custom_plugin_path=custom_plugin_path,
+                         verbose=False
+                        )
+            model_instance = TensorRTPredictor(model_path=self.models_trt_path[model_name], custom_plugin_path=custom_plugin_path, pool_size=self.nThreads, device=self.device, debug=debug)
+            return model_instance
+        finally:
+            self.main_window.model_loaded_signal.emit()
 
     def delete_models(self):
         for model_name, model_instance in self.models.items():

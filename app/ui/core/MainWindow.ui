@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>VisoMaster v0.1.6</string>
+   <string>VisoMaster v0.1.6 - modded</string>
   </property>
   <property name="windowIcon">
    <iconset resource="media.qrc">
@@ -81,7 +81,7 @@
          <item>
           <widget class="QCheckBox" name="faceCompareCheckBox">
            <property name="text">
-            <string>VIew Face Compare</string>
+            <string>View Face Compare</string>
            </property>
           </widget>
          </item>
@@ -809,6 +809,23 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QCheckBox" name="filterWebcamsCheckBox">
+           <property name="toolTip">
+            <string>Include Webcams</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="media.qrc">
+             <normaloff>:/media/media/webcam.png</normaloff>:/media/media/webcam.png</iconset>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -891,6 +908,78 @@
      </item>
     </layout>
    </widget>
+  </widget>
+  <widget class="QDockWidget" name="jobManagerDockWidget">
+    <property name="windowTitle">
+      <string>Job Manager</string>
+    </property>
+    <property name="features">
+      <set>QDockWidget::DockWidgetFeature::DockWidgetFloatable|QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
+    </property>
+    <attribute name="dockWidgetArea">
+      <number>1</number>
+    </attribute>
+    <widget class="QWidget" name="dockWidgetContents_JobManager">
+      <layout class="QVBoxLayout" name="verticalLayout_JobManager">
+        <item>
+          <layout class="QHBoxLayout" name="jobControlLayout">
+            <item>
+              <widget class="QPushButton" name="addJobButton">
+                <property name="text">
+                  <string>Save Job</string>
+                </property>
+              </widget>
+            </item>
+            <item>
+              <widget class="QPushButton" name="loadJobButton">
+                <property name="text">
+                  <string>Load Job</string>
+                </property>
+              </widget>
+            </item>
+            <item>
+              <widget class="QPushButton" name="deleteJobButton">
+                <property name="text">
+                  <string>Delete Job</string>
+                </property>
+              </widget>
+            </item>
+          </layout>
+        </item>
+        <item>
+          <widget class="QPushButton" name="refreshJobListButton">
+            <property name="text">
+              <string>Refresh Job List</string>
+            </property>
+          </widget>
+        </item>
+        <item>
+          <widget class="QListWidget" name="jobQueueList">
+            <property name="sortingEnabled">
+              <bool>true</bool>
+            </property>
+          </widget>
+        </item>
+        <item>
+          <layout class="QHBoxLayout" name="processControlLayout">
+            <item>
+              <widget class="QPushButton" name="buttonProcessAll">
+                <property name="text">
+                  <string>Process All</string>
+                </property>
+              </widget>
+            </item>
+            <item>
+              <widget class="QPushButton" name="buttonProcessSelected">
+                <property name="text">
+                  <string>Process Selected</string>
+                </property>
+              </widget>
+            </item>
+          </layout>
+        </item>
+      </layout>
+    </widget>
   </widget>
   <widget class="QDockWidget" name="controlOptionsDockWidget">
    <property name="features">

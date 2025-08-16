@@ -61,6 +61,10 @@ class FrameWorker(threading.Thread):
             self.is_view_face_compare = self.main_window.faceCompareCheckBox.isChecked() 
             self.is_view_face_mask = self.main_window.faceMaskCheckBox.isChecked() 
 
+            # Process the frame with model inference
+            # print(f"Processing frame {self.frame_number}")
+            output_frame_rgb = None # Frame to be sent via signal (needs to be RGB)
+            frame_for_pixmap = None # Frame to be used for QPixmap (needs to be BGR)
             # Determine if any processing is needed
             needs_processing = (
                 self.main_window.swapfacesButton.isChecked() or
@@ -69,28 +73,35 @@ class FrameWorker(threading.Thread):
             )
 
             if needs_processing:
-                if not self.frame.flags['C_CONTIGUOUS']: # Ensure input frame is C-contiguous
-                    self.frame = np.ascontiguousarray(self.frame)
-                # process_frame returns BGR, uint8
-                self.frame = self.process_frame()
-                # Ensure output is C-contiguous for Qt display
-                self.frame = np.ascontiguousarray(self.frame)
+                output_frame_rgb = self.process_frame() # process_frame now returns RGB
+                # Create BGR version for Pixmap
+                frame_for_pixmap = output_frame_rgb[..., ::-1]
             else:
-                # Img must be in BGR format
-                self.frame = self.frame[..., ::-1]  # Swap the channels from RGB to BGR
-                self.frame = np.ascontiguousarray(self.frame)
+                # No processing, input self.frame is RGB
+                output_frame_rgb = self.frame
+                # Create BGR version for Pixmap
+                frame_for_pixmap = output_frame_rgb[..., ::-1]
+
+            frame_for_pixmap = np.ascontiguousarray(frame_for_pixmap)
 
             # Display the frame if processing is still active
+            # Use the BGR frame for Pixmap generation
+            pixmap = common_widget_actions.get_pixmap_from_frame(self.main_window, frame_for_pixmap)
 
-            pixmap = common_widget_actions.get_pixmap_from_frame(self.main_window, self.frame)
+            # Output processed Webcam frame
+            # Emit the RGB frame via signal
+            if self.video_processor.file_type=='webcam' and not self.is_single_frame:
+                self.video_processor.webcam_frame_processed_signal.emit(pixmap, output_frame_rgb)
 
             #Output Video frame (while playing)
-            if not self.is_single_frame:
-                self.video_processor.frame_processed_signal.emit(self.frame_number, pixmap, self.frame)
+            # Emit the RGB frame via signal
+            elif not self.is_single_frame:
+                self.video_processor.frame_processed_signal.emit(self.frame_number, pixmap, output_frame_rgb)
             # Output Image/Video frame (Single frame)
+            # Emit the RGB frame via signal
             else:
                 # print('Emitted single_frame_processed_signal')
-                self.video_processor.single_frame_processed_signal.emit(self.frame_number, pixmap, self.frame)
+                self.video_processor.single_frame_processed_signal.emit(self.frame_number, pixmap, output_frame_rgb)
 
 
             # Mark the frame as done in the queue
@@ -335,10 +346,8 @@ class FrameWorker(threading.Thread):
         img = img.permute(1,2,0)
         img = img.cpu().numpy()
         # RGB to BGR
-        if not img.flags['C_CONTIGUOUS']:
-            img = np.ascontiguousarray(img)
             
-        return img[..., ::-1]
+        return img
 
     def _apply_denoiser_pass(self, img: torch.Tensor, control: dict, pass_suffix: str) -> torch.Tensor:
             """Helper to apply UNet denoiser based on control settings for a specific pass."""
@@ -782,16 +791,13 @@ class FrameWorker(threading.Thread):
         mask_forcalc = BgExclude.clone()
         mask_calc_dill = BgExclude.clone()
         mask_color = BgExclude.clone()
-        #FaceEditmaskOnes = swap_mask.clone()
         
         swap = torch.clamp(swap, 0.0, 255.0)
-
 
         # --- Apply UNet Denoiser to the swapped face (before restorers) ---
         # --- First Denoiser Pass (before restorers) ---
         if control.get('DenoiserUNetEnableBeforeRestorersToggle', False):
             swap = self._apply_denoiser_pass(swap, control, "Before")
-            #swap = faceutil.histogram_matching_DFL_Orig(original_face_512, swap, t512(swap_mask), 100)
 
         # Expression restorer Both Lips and Eyes separately
         if parameters['FaceExpressionEnableToggleBoth'] and (parameters['FaceExpressionLipsToggle'] or parameters['FaceExpressionEyesToggle']):
@@ -800,8 +806,6 @@ class FrameWorker(threading.Thread):
         # Restorer
         if parameters["FaceRestorerEnableToggle"]:
             swap = self.models_processor.apply_facerestorer(swap, parameters['FaceRestorerDetTypeSelection'], parameters['FaceRestorerTypeSelection'], parameters["FaceRestorerBlendSlider"], control['DetectorScoreSlider'])
-            #alpha_restorer = float(parameters["FaceRestorerBlendSlider"])/100.0
-            #swap = torch.add(torch.mul(swap_restorecalc, alpha_restorer), torch.mul(swap_original, 1 - alpha_restorer))
 
         # --- Second Denoiser Pass (after expression restorer) ---
         if control.get('DenoiserAfterFirstRestorerToggle', False):
@@ -812,13 +816,10 @@ class FrameWorker(threading.Thread):
             editor_mask = t512_mask(swap_mask).clone()
             swap = swap * editor_mask + original_face_512 * (1 - editor_mask)
             swap = self.swap_edit_face_core(swap, kps, parameters, control)
-            #swap_mask = FaceEditmaskOnes
         
         # Restorer2
         if parameters["FaceRestorerEnable2Toggle"]:
             swap = self.models_processor.apply_facerestorer(swap, parameters['FaceRestorerDetType2Selection'], parameters['FaceRestorerType2Selection'], parameters["FaceRestorerBlend2Slider"], control['DetectorScoreSlider'])
-            #alpha_restorer2 = float(parameters["FaceRestorerBlend2Slider"])/100.0
-            #swap = torch.add(torch.mul(swap_restorecalc2, alpha_restorer2), torch.mul(swap_original2, 1 - alpha_restorer2))
         
         # --- Third Denoiser Pass (after first restorers) ---
         if control.get('DenoiserAfterRestorersToggle', False):

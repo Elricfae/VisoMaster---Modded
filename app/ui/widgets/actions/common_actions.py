@@ -320,13 +320,13 @@ def extract_frame_as_pixmap(media_file_path, file_type, webcam_index=False, webc
         ret, frame = misc_helpers.read_frame(cap)
         cap.release()
             
-#    elif file_type == 'webcam':
-#        camera = cv2.VideoCapture(webcam_index, webcam_backend)
-#        if not camera.isOpened():
-#            return
-#        ret, frame = misc_helpers.read_frame(camera)
-#        if not ret:
-#            return
+    elif file_type == 'webcam':
+        camera = cv2.VideoCapture(webcam_index, webcam_backend)
+        if not camera.isOpened():
+            return
+        ret, frame = misc_helpers.read_frame(camera)
+        if not ret:
+            return
 
     if isinstance(frame, np.ndarray):
         # Save thumbnail for future use
@@ -421,11 +421,27 @@ def update_placeholder_visibility(main_window: 'MainWindow', list_widget:QtWidge
 
 @QtCore.Slot()
 def show_model_loading_dialog(main_window: 'MainWindow'):
-    main_window.model_loading_dialog = widget_components.LoadingDialog()
-    main_window.model_loading_dialog.show()
-    QtWidgets.QApplication.processEvents()
+    # Debounce: Only show dialog if loading takes longer than 300ms
+    if not hasattr(main_window, '_model_loading_timer'):
+        main_window._model_loading_timer = QtCore.QTimer()
+        main_window._model_loading_timer.setSingleShot(True)
+        def show_dialog():
+            if not hasattr(main_window, 'model_loading_dialog') or main_window.model_loading_dialog is None:
+                main_window.model_loading_dialog = widget_components.LoadingDialog()
+            if not main_window.model_loading_dialog.isVisible():
+                main_window.model_loading_dialog.show()
+                QtWidgets.QApplication.processEvents()
+        main_window._model_loading_timer.timeout.connect(show_dialog)
+    # Start or restart the timer
+    main_window._model_loading_timer.start(300)
 
 @QtCore.Slot()
 def hide_model_loading_dialog(main_window: 'MainWindow'):
-    main_window.model_loading_dialog.hide()
-    QtWidgets.QApplication.processEvents()
+    # Stop the timer if it's running
+    if hasattr(main_window, '_model_loading_timer'):
+        main_window._model_loading_timer.stop()
+    # Only hide if dialog exists and is visible
+    if hasattr(main_window, 'model_loading_dialog') and main_window.model_loading_dialog is not None:
+        if main_window.model_loading_dialog.isVisible():
+            main_window.model_loading_dialog.hide()
+            QtWidgets.QApplication.processEvents()

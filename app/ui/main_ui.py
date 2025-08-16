@@ -6,6 +6,7 @@ import copy
 
 from PySide6 import QtWidgets, QtGui
 from PySide6 import QtCore
+from PySide6.QtWidgets import QInputDialog, QMessageBox
 import torch
 
 from app.ui.core.main_window import Ui_MainWindow
@@ -17,6 +18,7 @@ from app.ui.widgets.actions import filter_actions
 from app.ui.widgets.actions import save_load_actions
 from app.ui.widgets.actions import list_view_actions
 from app.ui.widgets.actions import graphics_view_actions
+from app.ui.widgets.actions import job_manager_actions
 
 from app.processors.video_processor import VideoProcessor
 from app.processors.models_processor import ModelsProcessor
@@ -46,6 +48,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.input_faces_filter_worker = ui_workers.FilterWorker(main_window=self, search_text='', filter_list='input_faces')
         self.merged_embeddings_filter_worker = ui_workers.FilterWorker(main_window=self, search_text='', filter_list='merged_embeddings')
         self.video_processor = VideoProcessor(self)
+        # Connect the signal to start timers from the main thread
+        self.video_processor.start_segment_timers_signal.connect(self.video_processor._start_timers_from_signal)
         self.models_processor = ModelsProcessor(self)
         self.target_videos: Dict[int, widget_components.TargetMediaCardButton] = {} #Contains button objects of target videos (Set as list instead of single video to support batch processing in future)
         self.target_faces: Dict[int, widget_components.TargetFaceCardButton] = {} #Contains button objects of target faces
@@ -78,10 +82,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # UNet related
         self.previous_kv_file_selection = "" 
-        self.current_kv_tensors_map: Dict[str, torch.Tensor] #| None = None
+        self.current_kv_tensors_map: Dict[str, torch.Tensor] | None = None
         self.fixed_unet_model_name = "RefLDM_UNET_EXTERNAL_KV"
 
         self.loaded_embedding_filename: str = ''
+        
+        # List of (start_frame, end_frame) tuples for job segments
+        # end_frame can be None if a start marker is set but the end is not yet set.
+        self.job_marker_pairs: list[tuple[int, int | None]] = []
         
         self.last_target_media_folder_path = ''
         self.last_input_media_folder_path = ''
@@ -95,6 +103,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.project_root_path = Path(__file__).resolve().parent.parent.parent
         self.actual_models_dir_path = self.project_root_path / global_models_dir
         self.loading_new_media = False
+        # Flag to indicate if the last attempt to read a frame after seeking failed
+        self.last_seek_read_failed = False
 
         self.gpu_memory_update_signal.connect(partial(common_widget_actions.set_gpu_memory_progressbar_value, self))
         self.placeholder_update_signal.connect(partial(common_widget_actions.update_placeholder_visibility, self))
@@ -153,7 +163,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.frameAdvanceButton.clicked.connect(partial(video_control_actions.advance_video_slider_by_n_frames, self))
         self.frameRewindButton.clicked.connect(partial(video_control_actions.rewind_video_slider_by_n_frames, self))
 
-        self.addMarkerButton.clicked.connect(partial(video_control_actions.add_video_slider_marker, self))
+        self.addMarkerButton.clicked.connect(partial(video_control_actions.show_add_marker_menu, self))
         self.removeMarkerButton.clicked.connect(partial(video_control_actions.remove_video_slider_marker, self))
         self.nextMarkerButton.clicked.connect(partial(video_control_actions.move_slider_to_next_nearest_marker, self))
         self.previousMarkerButton.clicked.connect(partial(video_control_actions.move_slider_to_previous_nearest_marker, self))
@@ -173,8 +183,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.targetVideosSearchBox.textChanged.connect(partial(filter_actions.filter_target_videos, self))
         self.filterImagesCheckBox.clicked.connect(partial(filter_actions.filter_target_videos, self))
         self.filterVideosCheckBox.clicked.connect(partial(filter_actions.filter_target_videos, self))
-#        self.filterWebcamsCheckBox.clicked.connect(partial(filter_actions.filter_target_videos, self))
-#        self.filterWebcamsCheckBox.clicked.connect(partial(list_view_actions.load_target_webcams, self))
+        self.filterWebcamsCheckBox.clicked.connect(partial(filter_actions.filter_target_videos, self))
+        self.filterWebcamsCheckBox.clicked.connect(partial(list_view_actions.load_target_webcams, self))
 
         self.inputFacesSearchBox.textChanged.connect(partial(filter_actions.filter_input_faces, self))
         self.inputEmbeddingsSearchBox.textChanged.connect(partial(filter_actions.filter_merged_embeddings, self))
@@ -236,7 +246,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Set face_swap_tab as the default focused tab
         self.tabWidget.setCurrentIndex(0)
         # widget_actions.add_groupbox_and_widgets_from_layout_map(self)
-
+        
+        # --- Job Manager UI Setup ---
+        job_manager_actions.setup_job_manager_ui(self)
+        
         # Connect Denoiser Mode SelectionBox signals to update visibility
         denoiser_mode_before_combo = self.parameter_widgets.get('DenoiserModeSelectionBefore')
         if denoiser_mode_before_combo:
@@ -378,7 +391,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # as this affects whether kv_tensor_map_for_this_run will be None or populated.
             if new_kv_file_name: # True if a file is selected or "No K/V..." is chosen (i.e., selection changed)
                 common_widget_actions.refresh_frame(self)
-            
+        
+        
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)

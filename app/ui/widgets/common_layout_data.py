@@ -196,26 +196,6 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'requiredToggleValue': True,
             'help': 'Control the expression similarity between the driving face and the swapped face of the lips.'
         },
-        'FaceExpressionNormalizeLipsEnableToggleBoth': {
-            'level': 3,
-            'label': 'Normalize Lips',
-            'default': True,
-            'parentToggle': 'FaceExpressionEnableToggleBoth & FaceExpressionLipsToggle',
-            'requiredToggleValue': True,
-            'help': 'Normalize the lips during the facial restoration process.'
-        },
-        'FaceExpressionNormalizeLipsThresholdDecimalSliderBoth': {
-            'level': 4,
-            'label': 'Normalize Lips Threshold',
-            'min_value': '0.00',
-            'max_value': '0.20',
-            'default': '0.03',
-            'decimals': 2,
-            'step': 0.01,
-            'parentToggle': 'FaceExpressionNormalizeLipsEnableToggleBoth & FaceExpressionEnableToggleBoth & FaceExpressionLipsToggle',
-            'requiredToggleValue': True,
-            'help': 'Threshold value for Normalize Lips.'
-        },        
         'FaceExpressionRetargetingLipsEnableToggleBoth': {
             'level': 3,
             'label': 'Retargeting Lips',
@@ -236,6 +216,26 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'requiredToggleValue': True,
             'help': 'Multiplier value for Retargeting Lips.'
         },
+        'FaceExpressionNormalizeLipsEnableToggleBoth': {
+            'level': 3,
+            'label': 'Normalize Lips',
+            'default': False,
+            'parentToggle': 'FaceExpressionEnableToggleBoth & FaceExpressionLipsToggle',
+            'requiredToggleValue': True,
+            'help': 'Normalize the lips during the facial restoration process.'
+        },
+        'FaceExpressionNormalizeLipsThresholdDecimalSliderBoth': {
+            'level': 4,
+            'label': 'Normalize Lips Threshold',
+            'min_value': '0.00',
+            'max_value': '0.20',
+            'default': '0.03',
+            'decimals': 2,
+            'step': 0.01,
+            'parentToggle': 'FaceExpressionNormalizeLipsEnableToggleBoth & FaceExpressionEnableToggleBoth & FaceExpressionLipsToggle',
+            'requiredToggleValue': True,
+            'help': 'Threshold value for Normalize Lips.'
+        },        
     },
     'ReF-LDM Denoiser': {
         'ReferenceKVTensorsSelection': {
