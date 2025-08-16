@@ -21,6 +21,14 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
             'requiredSelectionValue': 'Inswapper128',
             'help': 'Select the resolution for the swapped face in pixels. Higher values offer better quality but are slower to process.'
         },
+        'SwapperResAutoSelectEnableToggle': {
+            'level': 2,
+            'label': 'Enable Auto Resolution',
+            'default': False,
+            'parentSelection': 'SwapModelSelection',
+            'requiredSelectionValue': 'Inswapper128',
+            'help': 'Autoselect Swapper Resolution based on original Face Size (only for Inswapper).'
+        },
         'InStyleResAEnableToggle': {
             'level': 2,
             'label': '512 Resolution',
@@ -477,28 +485,6 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
             'requiredToggleValue': True,
             'help': 'Different values for gradient magnitude calculation, sometimes better but sometimes too much stripes in face'
         },
-        'TransferTextureLambdSlider': {
-            'level': 3,
-            'label': 'Texture Lambda',
-            'min_value': '1',
-            'max_value': '10',
-            'default': '2',
-            'step': 1,
-            'parentToggle': 'TransferTextureEnableToggle & TransferTextureModeEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Define how strong texture Lambda'
-        },              
-        'TransferTextureThetaSlider': {
-            'level': 3,
-            'label': 'Texture Theta',
-            'min_value': '1',
-            'max_value': '10',
-            'default': '1',
-            'step': 1,
-            'parentToggle': 'TransferTextureEnableToggle & TransferTextureModeEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Define how strong texture Theta'
-        },            
         'TransferTextureBlendAmountSlider': {
             'level': 2,
             'label': 'Texture Strength Amount',

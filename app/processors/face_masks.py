@@ -80,7 +80,7 @@ class FaceMasks:
         outpred = torch.clamp(outpred, min=0.0, max=1.0)
         outpred[outpred < 0.1] = 0
         outpred_calc = outpred.clone()
-        #outpred = torch.where(outpred < 0.5, 0, 1).float()
+        
         # invert values to mask areas to keep
         outpred = 1.0 - outpred
         outpred = torch.unsqueeze(outpred, 0).type(torch.float32)
@@ -88,6 +88,7 @@ class FaceMasks:
         outpred_calc = torch.where(outpred_calc < 0.1, 0, 1).float()
         outpred_calc = 1.0 - outpred_calc
         outpred_calc = torch.unsqueeze(outpred_calc, 0).type(torch.float32)
+
         outpred_calc_dill = outpred_calc.clone()
         
         if amount2 != amount:

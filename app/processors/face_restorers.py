@@ -15,7 +15,7 @@ class FaceRestorers:
 
     def apply_facerestorer(self, swapped_face_upscaled, restorer_det_type, restorer_type, restorer_blend, detect_score):
         temp = swapped_face_upscaled
-        t512 = v2.Resize((512, 512), interpolation=v2.InterpolationMode.BILINEAR, antialias=False)
+        t512 = v2.Resize((512, 512), interpolation=v2.InterpolationMode.BILINEAR, antialias=True)
         t256 = v2.Resize((256, 256), interpolation=v2.InterpolationMode.BILINEAR, antialias=False)
         t1024 = v2.Resize((1024, 1024), interpolation=v2.InterpolationMode.BILINEAR, antialias=False)
         t2048 = v2.Resize((2048, 2048), interpolation=v2.InterpolationMode.BILINEAR, antialias=False)
@@ -97,8 +97,8 @@ class FaceRestorers:
             outpred = v2.functional.affine(outpred, tform.inverse.rotation*57.2958, (tform.inverse.translation[0], tform.inverse.translation[1]), tform.inverse.scale, 0, interpolation=v2.InterpolationMode.BILINEAR, center = (0,0) )
            
         # Blend
-        alpha = float(restorer_blend)/100.0
-        outpred = torch.add(torch.mul(outpred, alpha), torch.mul(swapped_face_upscaled, 1-alpha))
+        #alpha = float(restorer_blend)/100.0
+        #outpred = torch.add(torch.mul(outpred, alpha), torch.mul(swapped_face_upscaled, 1-alpha))
 
         return outpred
 

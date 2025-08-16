@@ -39,6 +39,25 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'requiredToggleValue': True,
             'help': 'Control the blend ratio between the restored face and the swapped face.'
         },
+        'FaceRestorerAutoEnableToggle': {
+            'level': 2,
+            'label': 'Auto Restore',
+            'default': False,
+            'parentToggle': 'FaceRestorerEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Auto Adjust Restorer Blend Amount'
+        },
+        'FaceRestorerAutoSharpAdjustSlider': {
+            'level': 3,
+            'label': 'adjust sharpness',
+            'min_value': '-60',
+            'max_value': '60',
+            'default': '0',
+            'step': 1,
+            'parentToggle': 'FaceRestorerAutoEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Adjust sharp calc. mostly needed for over 0, which makes the swap sharper. depends on swap model, restorer model, resolution, face size,...'
+        },
         'FaceRestorerEnable2Toggle': {
             'level': 1,
             'label': 'Enable Face Restorer 2',
@@ -73,6 +92,25 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'FaceRestorerEnable2Toggle',
             'requiredToggleValue': True,
             'help': 'Control the blend ratio between the restored face and the swapped face.'
+        },
+        'FaceRestorerAutoEnable2Toggle': {
+            'level': 2,
+            'label': 'Auto Restore2',
+            'default': False,
+            'parentToggle': 'FaceRestorerEnable2Toggle',
+            'requiredToggleValue': True,
+            'help': 'Auto Adjust Restorer2 Blend Amount'
+        },
+        'FaceRestorerAutoSharpAdjust2Slider': {
+            'level': 3,
+            'label': 'adjust sharpness',
+            'min_value': '-60',
+            'max_value': '60',
+            'default': '0',
+            'step': 1,
+            'parentToggle': 'FaceRestorerAutoEnable2Toggle',
+            'requiredToggleValue': True,
+            'help': 'Adjust sharp calc. mostly needed for over 0, which makes the swap sharper. depends on swap model, restorer model, resolution, face size,...'
         },
         'FaceExpressionEnableToggleBoth': {
             'level': 1,

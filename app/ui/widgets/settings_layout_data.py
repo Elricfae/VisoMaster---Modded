@@ -303,7 +303,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Input Faces Include Subfolders',
             'default': False,
             'help': 'Include all files from Subfolders when choosing Input Faces Folder'
-        }
+        },
     }
 }
 
