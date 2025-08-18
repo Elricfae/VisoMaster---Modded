@@ -54,9 +54,9 @@ class FaceEditors:
 
                 feed_dict = {}
                 feed_dict["img"] = I_s
-                #stream = torch.cuda.Stream()
-                #preds_dict = motion_extractor_model.predict_async(feed_dict, stream)
-                preds_dict = motion_extractor_model.predict_async(feed_dict, torch.cuda.current_stream())
+                stream = torch.cuda.current_stream()
+                preds_dict = motion_extractor_model.predict_async(feed_dict, stream)
+                #preds_dict = motion_extractor_model.predict_async(feed_dict, torch.cuda.current_stream())
                 #preds_dict = motion_extractor_model.predict(feed_dict)
 
                 kp_info = {
@@ -148,7 +148,9 @@ class FaceEditors:
 
                 feed_dict = {}
                 feed_dict["img"] = I_s
-                preds_dict = appearance_feature_extractor_model.predict_async(feed_dict, torch.cuda.current_stream())
+                stream = torch.cuda.current_stream()
+                preds_dict = appearance_feature_extractor_model.predict_async(feed_dict, stream)
+                #preds_dict = appearance_feature_extractor_model.predict_async(feed_dict, torch.cuda.current_stream())
                 #preds_dict = appearance_feature_extractor_model.predict(feed_dict)
 
                 output = preds_dict["output"]
@@ -203,7 +205,9 @@ class FaceEditors:
 
                 feed_dict = {}
                 feed_dict["input"] = feat_eye
-                preds_dict = stitching_eye_model.predict_async(feed_dict, torch.cuda.current_stream())
+                stream = torch.cuda.current_stream()
+                preds_dict = stitching_eye_model.predict_async(feed_dict, stream)
+                #preds_dict = stitching_eye_model.predict_async(feed_dict, torch.cuda.current_stream())
                 #preds_dict = stitching_eye_model.predict(feed_dict)
 
                 delta = preds_dict["output"]
@@ -254,7 +258,9 @@ class FaceEditors:
 
                 feed_dict = {}
                 feed_dict["input"] = feat_lip
-                preds_dict = stitching_lip_model.predict_async(feed_dict, torch.cuda.current_stream())
+                stream = torch.cuda.current_stream()
+                preds_dict = stitching_lip_model.predict_async(feed_dict, stream)
+                #preds_dict = stitching_lip_model.predict_async(feed_dict, torch.cuda.current_stream())
                 #preds_dict = stitching_lip_model.predict(feed_dict)
 
                 delta = preds_dict["output"]
@@ -305,7 +311,9 @@ class FaceEditors:
 
                 feed_dict = {}
                 feed_dict["input"] = feat_stiching
-                preds_dict = stitching_model.predict_async(feed_dict, torch.cuda.current_stream())
+                stream = torch.cuda.current_stream()
+                preds_dict = stitching_model.predict_async(feed_dict, stream)
+                #preds_dict = stitching_model.predict_async(feed_dict, torch.cuda.current_stream())
                 #preds_dict = stitching_model.predict(feed_dict)
 
                 delta = preds_dict["output"]
@@ -416,8 +424,9 @@ class FaceEditors:
                 feed_dict["feature_3d"] = feature_3d
                 feed_dict["kp_source"] = kp_source
                 feed_dict["kp_driving"] = kp_driving
-                #stream = torch.cuda.Stream()
-                preds_dict = warping_spade_model.predict_async(feed_dict, torch.cuda.current_stream())
+                stream = torch.cuda.current_stream()
+                preds_dict = warping_spade_model.predict_async(feed_dict, stream)
+                #preds_dict = warping_spade_model.predict_async(feed_dict, torch.cuda.current_stream())
                 #preds_dict = warping_spade_model.predict(feed_dict)
 
                 out = preds_dict["out"]

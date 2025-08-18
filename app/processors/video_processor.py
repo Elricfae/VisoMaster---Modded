@@ -604,8 +604,31 @@ class VideoProcessor(QObject):
         try: self.disable_virtualcam()
         except Exception: pass
         print("Processing aborted and cleaned up.")
-        return True # Processing was stopped
+        
+        # Determine the end time based on the frame counter
+        # The last frame successfully *processed* (and intended for display) was self.next_frame_to_display - 1
+        # The range for audio extraction should go up to the *start* of the frame *after* the last processed one.
+        end_frame_for_calc = min(self.next_frame_to_display, self.max_frame_number + 1)
+        self.play_end_time = float(end_frame_for_calc / float(self.fps)) if self.fps > 0 else 0.0
+        print(f"Calculated default-style recording end time: {self.play_end_time:.3f}s (based on frame {end_frame_for_calc})")
 
+        # --- Final Timing and Logging (default style) ---
+        self.end_time = time.perf_counter()
+        processing_time = self.end_time - self.start_time
+        print(f"\nProcessing completed in {processing_time:.2f} seconds")
+        try:
+            duration = self.play_end_time - self.play_start_time
+            if duration > 0 or processing_time > 0:
+                 processed_frames = duration * self.fps
+                 avg_fps = processed_frames / processing_time
+                 print(f'Average Processing FPS: {avg_fps:.2f}\n')
+            else:
+                 print("Could not calculate average FPS (duration or processing time is zero).\n")
+        except Exception as e:
+            print(f"[WARN] Could not calculate average FPS: {e}\n")
+            
+        return True # Processing was stopped
+        
     def join_and_clear_threads(self):
         # print("Joining worker threads...")
         active_threads = list(self.threads.values()) # Copy list as dict may change
@@ -739,7 +762,7 @@ class VideoProcessor(QObject):
             return False
         except Exception as e:
             print(f"[ERROR] Failed to start FFmpeg subprocess (default-style): {e}")
-            self.main_window.display_messagebox_signal.emit('FFmpeg Error', f'Failed to start FFmpeg:\\n{e}', self.main_window)
+            self.main_window.display_messagebox_signal.emit('FFmpeg Error', f'Failed to start FFmpeg:\n{e}', self.main_window)
             return False
 
     def _finalize_default_style_recording(self):
@@ -818,7 +841,7 @@ class VideoProcessor(QObject):
                 try: os.makedirs(output_dir); print(f"Created output directory: {output_dir}")
                 except OSError as e:
                      print(f"[ERROR] Failed to create output directory {output_dir}: {e}")
-                     self.main_window.display_messagebox_signal.emit('File Error', f'Could not create output directory:\\n{output_dir}\\n\\n{e}', self.main_window)
+                     self.main_window.display_messagebox_signal.emit('File Error', f'Could not create output directory:\n{output_dir}\n\n{e}', self.main_window)
                      # Cleanup temp file even if output dir fails
                      try: os.remove(self.temp_file)
                      except OSError: pass
@@ -857,7 +880,7 @@ class VideoProcessor(QObject):
             except subprocess.CalledProcessError as e:
                 print(f"[ERROR] FFmpeg command failed during default-style audio merge: {e}")
                 print(f"FFmpeg arguments: {' '.join(args)}") # Log the command
-                self.main_window.display_messagebox_signal.emit('Recording Error', f'FFmpeg command failed during audio merge:\\n{e}\\nCheck console for command.', self.main_window)
+                self.main_window.display_messagebox_signal.emit('Recording Error', f'FFmpeg command failed during audio merge:\n{e}\nCheck console for command.', self.main_window)
             except FileNotFoundError:
                  print("[ERROR] FFmpeg not found. Cannot merge audio.")
                  self.main_window.display_messagebox_signal.emit('Recording Error', 'FFmpeg not found.', self.main_window)
@@ -885,17 +908,17 @@ class VideoProcessor(QObject):
         # --- Final Timing and Logging (default style) ---
         self.end_time = time.perf_counter()
         processing_time = self.end_time - self.start_time
-        print(f"\\nProcessing completed in {processing_time:.2f} seconds")
+        print(f"\nProcessing completed in {processing_time:.2f} seconds")
         try:
             duration = self.play_end_time - self.play_start_time
-            if duration > 0 and processing_time > 0:
+            if duration > 0 or processing_time > 0:
                  processed_frames = duration * self.fps
                  avg_fps = processed_frames / processing_time
-                 print(f'Average Processing FPS: {avg_fps:.2f}\\n')
+                 print(f'Average Processing FPS: {avg_fps:.2f}\n')
             else:
-                 print("Could not calculate average FPS (duration or processing time is zero).\\n")
+                 print("Could not calculate average FPS (duration or processing time is zero).\n")
         except Exception as e:
-            print(f"[WARN] Could not calculate average FPS: {e}\\n")
+            print(f"[WARN] Could not calculate average FPS: {e}\n")
 
 
         # --- Reset State and UI ---
@@ -954,7 +977,7 @@ class VideoProcessor(QObject):
             print(f"[ERROR] Failed to enable virtual camera: {e}")
             self.virtcam = None # Ensure virtcam is None on failure
             # Optionally notify user via messagebox
-            self.main_window.display_messagebox_signal.emit('Virtual Camera Error', f'Failed to start virtual camera:\\n{e}', self.main_window)
+            self.main_window.display_messagebox_signal.emit('Virtual Camera Error', f'Failed to start virtual camera:\n{e}', self.main_window)
 
 
     def disable_virtualcam(self):
@@ -1092,7 +1115,7 @@ class VideoProcessor(QObject):
             return False
         except Exception as e:
             print(f"[ERROR] Failed to start FFmpeg subprocess for segment {segment_num}: {e}")
-            self.main_window.display_messagebox_signal.emit('FFmpeg Error', f'Failed to start FFmpeg for segment {segment_num}:\\n{e}', self.main_window)
+            self.main_window.display_messagebox_signal.emit('FFmpeg Error', f'Failed to start FFmpeg for segment {segment_num}:\n{e}', self.main_window)
             return False
 
 
@@ -1142,7 +1165,7 @@ class VideoProcessor(QObject):
             print(f"Created temporary directory for segments: {self.segment_temp_dir}")
         except Exception as e:
             print(f"[ERROR] Failed to create temporary directory: {e}")
-            self.main_window.display_messagebox_signal.emit('File System Error', f'Failed to create temporary directory:\\n{e}', self.main_window)
+            self.main_window.display_messagebox_signal.emit('File System Error', f'Failed to create temporary directory:\n{e}', self.main_window)
             self.stop_processing() # Abort start
             return
 
@@ -1421,7 +1444,7 @@ class VideoProcessor(QObject):
                 print(f"Created output directory: {output_dir}")
             except OSError as e:
                 print(f"[ERROR] Failed to create output directory {output_dir}: {e}")
-                self.main_window.display_messagebox_signal.emit('File Error', f'Could not create output directory:\\n{output_dir}\\n\\n{e}', self.main_window)
+                self.main_window.display_messagebox_signal.emit('File Error', f'Could not create output directory:\n{output_dir}\n\n{e}', self.main_window)
                 self._cleanup_temp_dir()
                 layout_actions.enable_all_parameters_and_control_widget(self.main_window)
                 video_control_actions.reset_media_buttons(self.main_window)
@@ -1434,7 +1457,7 @@ class VideoProcessor(QObject):
                 os.remove(final_file_path)
             except OSError as e:
                 print(f"[ERROR] Failed to remove existing file {final_file_path}: {e}")
-                self.main_window.display_messagebox_signal.emit('File Error', f'Could not delete existing file:\\n{final_file_path}\\n\\n{e}', self.main_window)
+                self.main_window.display_messagebox_signal.emit('File Error', f'Could not delete existing file:\n{final_file_path}\n\n{e}', self.main_window)
                 self._cleanup_temp_dir()
                 layout_actions.enable_all_parameters_and_control_widget(self.main_window)
                 video_control_actions.reset_media_buttons(self.main_window)
@@ -1472,13 +1495,13 @@ class VideoProcessor(QObject):
         except subprocess.CalledProcessError as e:
             print(f"[ERROR] FFmpeg command failed during final concatenation: {e}")
             print(f"FFmpeg arguments: {' '.join(concat_args)}")
-            self.main_window.display_messagebox_signal.emit('Recording Error', f'FFmpeg command failed during concatenation:\\n{e}\\nCould not create final video.', self.main_window)
+            self.main_window.display_messagebox_signal.emit('Recording Error', f'FFmpeg command failed during concatenation:\n{e}\nCould not create final video.', self.main_window)
         except FileNotFoundError:
             print("[ERROR] FFmpeg not found. Ensure it's in your system PATH.")
             self.main_window.display_messagebox_signal.emit('Recording Error', 'FFmpeg not found.', self.main_window)
         except Exception as e:
             print(f"[ERROR] An unexpected error occurred during finalization: {e}")
-            self.main_window.display_messagebox_signal.emit('Recording Error', f'An unexpected error occurred:\\n{e}', self.main_window)
+            self.main_window.display_messagebox_signal.emit('Recording Error', f'An unexpected error occurred:\n{e}', self.main_window)
 
         finally:
             # --- Cleanup and Reset ---

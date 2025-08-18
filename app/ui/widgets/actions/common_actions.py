@@ -394,7 +394,7 @@ def set_control_widgets_values(main_window: 'MainWindow', enable_exec_func = Tru
                         exec_args_from_layout = widget_definition.get('exec_function_args', []) 
                         final_exec_args = [main_window, control_value] + exec_args_from_layout
                         exec_function_data(*final_exec_args)
-
+    
             # Re-enable frame refresh
             widget.enable_refresh_frame = True
         
@@ -433,7 +433,7 @@ def show_model_loading_dialog(main_window: 'MainWindow'):
                 QtWidgets.QApplication.processEvents()
         main_window._model_loading_timer.timeout.connect(show_dialog)
     # Start or restart the timer
-    main_window._model_loading_timer.start(300)
+    main_window._model_loading_timer.start(100)
 
 @QtCore.Slot()
 def hide_model_loading_dialog(main_window: 'MainWindow'):
