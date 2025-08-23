@@ -690,12 +690,6 @@ class VideoProcessor(QObject):
             except OSError as e:
                 print(f"[WARN] Could not remove existing temp file {self.temp_file}: {e}")
 
-        # Consistently output SDR BT.709 as the Python pipeline produces 8-bit SDR frames.
-        output_pix_fmt = 'yuv420p' # Standard 8-bit SDR
-        output_color_trc = 'bt709'
-        output_colorspace = 'bt709'
-        output_color_primaries = 'bt709'
-
         args = [
             "ffmpeg",
             "-hide_banner",
@@ -713,8 +707,13 @@ class VideoProcessor(QObject):
             # For NVENC, it needs a GPU compatible format like nv12 (8-bit) or p010le (10-bit).
             # The `format` filter handles CPU-side conversion before hwupload.
         ]
-        # Since input to pipe is 8-bit bgr24, always use nv12 for NVENC.
-        # The filter chain should be: bgr24 (input from pipe) -> format=nv12 (CPU conversion) -> hwupload_cuda -> hevc_nvenc
+        
+        # Consistently output SDR BT.709 as the Python pipeline produces 8-bit SDR frames.
+        output_pix_fmt = 'yuv420p' # Standard 8-bit SDR
+        output_color_trc = 'bt2020-10'
+        output_colorspace = 'rgb'
+        output_color_primaries = 'bt2020'
+        
         if self.main_window.control.get('ProvidersPrioritySelection') in ["CUDA", "TensorRT", "TensorRT-Engine"]:
             # For NVENC, frames must be in GPU memory.
             # Let hevc_nvenc handle the upload and format conversion by specifying input format.
@@ -722,35 +721,48 @@ class VideoProcessor(QObject):
             pass # hevc_nvenc will use the -pix_fmt bgr24 from input and manage upload/conversion
         else: # CPU processing for ffmpeg (e.g. libx264)
             args.extend(["-vf", f"format={output_pix_fmt}"])
-
-        args.extend([
-            # Video Codec: Use NVIDIA HEVC encoder
-            "-c:v", "hevc_nvenc",
-            # Quality Setting: NVENC uses -cq (Constant Quality scale, lower=better, ~18-28 is common range)
-            # Or use -qp (Constant Quantization Parameter)
-            # Or target bitrate: -b:v 60M
-            "-cq", "18", # Experiment with this value
-            # Preset: Controls speed vs quality trade-off for NVENC (e.g., p1-p7, default is p4/p5)
-            # p5=medium, p6=slow, p7=slower (higher quality)
-            "-preset", "p6",
-            # Profile/Level might still be useful
-            # "-profile:v", "main",
-            # "-level:v", "6.2",
-            # Set color properties (NVENC should respect these)
-            "-vf", f"scale={frame_width_down}x{frame_height_down}:flags=lanczos",
-            "-pix_fmt", output_pix_fmt, # Explicitly set output pixel format for the container
-            #"-color_range", "tv",
-            #"-colorspace", output_colorspace,
-            #"-color_primaries", output_color_primaries,
-            #"-color_trc", output_color_trc,
-            "-tag:v", "hvc1",
-
-            # Audio Codec: Copy directly
-            #"-c:a", "copy",
-
-            # Output File
-            self.temp_file
-        ])
+        
+        if control['FrameEnhancerDownToggle']:
+            args.extend([
+                # Video Codec: Use NVIDIA HEVC encoder
+                "-c:v", "hevc_nvenc",
+                # Quality Setting: NVENC uses -cq (Constant Quality scale, lower=better, ~18-28 is common range)
+                # Or use -qp (Constant Quantization Parameter)
+                # Or target bitrate: -b:v 60M
+                "-cq", "18", # Experiment with this value
+                # Preset: Controls speed vs quality trade-off for NVENC (e.g., p1-p7, default is p4/p5)
+                # p5=medium, p6=slow, p7=slower (higher quality)
+                "-preset", "p6",
+                # Set color properties (NVENC should respect these)
+                "-vf", f"scale={frame_width_down}x{frame_height_down}:flags=lanczos+accurate_rnd+full_chroma_int",
+                "-pix_fmt", output_pix_fmt, # Explicitly set output pixel format for the container
+                "-colorspace", output_colorspace,
+                "-color_primaries", output_color_primaries,
+                "-color_trc", output_color_trc,
+                "-tag:v", "hvc1",
+                # Output File
+                self.temp_file
+            ])
+        else:
+            args.extend([
+                # Video Codec: Use NVIDIA HEVC encoder
+                "-c:v", "hevc_nvenc",
+                # Quality Setting: NVENC uses -cq (Constant Quality scale, lower=better, ~18-28 is common range)
+                # Or use -qp (Constant Quantization Parameter)
+                # Or target bitrate: -b:v 60M
+                "-cq", "18", # Experiment with this value
+                # Preset: Controls speed vs quality trade-off for NVENC (e.g., p1-p7, default is p4/p5)
+                # p5=medium, p6=slow, p7=slower (higher quality)
+                "-preset", "p6",
+                # Set color properties (NVENC should respect these)
+                "-pix_fmt", output_pix_fmt, # Explicitly set output pixel format for the container
+                "-colorspace", output_colorspace,
+                "-color_primaries", output_color_primaries,
+                "-color_trc", output_color_trc,
+                "-tag:v", "hvc1",
+                # Output File
+                self.temp_file
+            ])
 
         try:
             # bufsize=-1 uses system default, often buffered which might be better for video
@@ -1068,7 +1080,11 @@ class VideoProcessor(QObject):
             # Output File
             
         ]
-        output_pix_fmt = 'yuv420p'
+        output_pix_fmt = 'yuv420p' # Standard 8-bit SDR
+        output_color_trc = 'bt2020-10'
+        output_colorspace = 'rgb'
+        output_color_primaries = 'bt2020'
+        
         if self.main_window.control.get('ProvidersPrioritySelection') in ["CUDA", "TensorRT", "TensorRT-Engine"]:
             # For NVENC, frames must be in GPU memory.
             # Let hevc_nvenc handle the upload and format conversion by specifying input format.
@@ -1077,34 +1093,47 @@ class VideoProcessor(QObject):
         else: # CPU processing for ffmpeg (e.g. libx264)
             args.extend(["-vf", f"format={output_pix_fmt}"])
 
-        args.extend([
-            # Video Codec: Use NVIDIA HEVC encoder
-            "-c:v", "hevc_nvenc",
-            # Quality Setting: NVENC uses -cq (Constant Quality scale, lower=better, ~18-28 is common range)
-            # Or use -qp (Constant Quantization Parameter)
-            # Or target bitrate: -b:v 60M
-            "-cq", "18", # Experiment with this value
-            # Preset: Controls speed vs quality trade-off for NVENC (e.g., p1-p7, default is p4/p5)
-            # p5=medium, p6=slow, p7=slower (higher quality)
-            "-preset", "p6",
-            # Profile/Level might still be useful
-            # "-profile:v", "main",
-            # "-level:v", "6.2",
-            # Set color properties (NVENC should respect these)
-            "-vf", f"scale={frame_width_down}x{frame_height_down}:flags=lanczos",
-            "-pix_fmt", output_pix_fmt, # Explicitly set output pixel format for the container
-            #"-color_range", "tv",
-            #"-colorspace", output_colorspace,
-            #"-color_primaries", output_color_primaries,
-            #"-color_trc", output_color_trc,
-            "-tag:v", "hvc1",
-
-            # Audio Codec: Copy directly
-            #"-c:a", "copy",
-
-            # Output File
-            output_filename
-        ])
+        if control['FrameEnhancerDownToggle']:
+            args.extend([
+                # Video Codec: Use NVIDIA HEVC encoder
+                "-c:v", "hevc_nvenc",
+                # Quality Setting: NVENC uses -cq (Constant Quality scale, lower=better, ~18-28 is common range)
+                # Or use -qp (Constant Quantization Parameter)
+                # Or target bitrate: -b:v 60M
+                "-cq", "18", # Experiment with this value
+                # Preset: Controls speed vs quality trade-off for NVENC (e.g., p1-p7, default is p4/p5)
+                # p5=medium, p6=slow, p7=slower (higher quality)
+                "-preset", "p6",
+                # Set color properties (NVENC should respect these)
+                "-vf", f"scale={frame_width_down}x{frame_height_down}:flags=lanczos+accurate_rnd+full_chroma_int",
+                "-pix_fmt", output_pix_fmt, # Explicitly set output pixel format for the container
+                "-colorspace", output_colorspace,
+                "-color_primaries", output_color_primaries,
+                "-color_trc", output_color_trc,
+                "-tag:v", "hvc1",
+                # Output File
+                self.temp_file
+            ])
+        else:
+            args.extend([
+                # Video Codec: Use NVIDIA HEVC encoder
+                "-c:v", "hevc_nvenc",
+                # Quality Setting: NVENC uses -cq (Constant Quality scale, lower=better, ~18-28 is common range)
+                # Or use -qp (Constant Quantization Parameter)
+                # Or target bitrate: -b:v 60M
+                "-cq", "18", # Experiment with this value
+                # Preset: Controls speed vs quality trade-off for NVENC (e.g., p1-p7, default is p4/p5)
+                # p5=medium, p6=slow, p7=slower (higher quality)
+                "-preset", "p6",
+                # Set color properties (NVENC should respect these)
+                "-pix_fmt", output_pix_fmt, # Explicitly set output pixel format for the container
+                "-colorspace", output_colorspace,
+                "-color_primaries", output_color_primaries,
+                "-color_trc", output_color_trc,
+                "-tag:v", "hvc1",
+                # Output File
+                self.temp_file
+            ])
         
         try:
             self.recording_sp = subprocess.Popen(args, stdin=subprocess.PIPE, bufsize=-1)

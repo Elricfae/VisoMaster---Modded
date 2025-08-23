@@ -856,7 +856,7 @@ class FrameWorker(threading.Thread):
             swap = torch.add(torch.mul(swap_restorecalc, alpha_restorer), torch.mul(swap_original, 1 - alpha_restorer))
 
         # --- Second Denoiser Pass (after first restorer) ---
-        if control.get('DenoiserAfterFirstRestorerToggle', False):
+        if control.get('DenoiserAfterFirstRestorersToggle', False):
             swap = self._apply_denoiser_pass(swap, control, "AfterFirst")
         
         # Face Editor

@@ -11,7 +11,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'help': 'Select the theme to be used',
             'exec_function': control_actions.change_theme,
             'exec_function_args': [],
-        },
+        }
     },
     'General': {
         'ProvidersPrioritySelection': {
@@ -33,9 +33,9 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'help': 'Set number of execution threads while playing and recording. Depends strongly on GPU VRAM.',
             'exec_function': control_actions.change_threads_number,
             'exec_function_args': [],
-        },
+        }
     },
-    'Video Settings': {
+    'Video Settings and swaps': {
         'VideoPlaybackCustomFpsToggle': {
             'level': 1,
             'label': 'Set Custom Video Playback FPS',
@@ -55,24 +55,43 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'step': 1,
             'help': 'Set the maximum FPS of the video when playing'
         },
-    },
-    'Auto Swap':{
         'AutoSwapToggle': {
             'level': 1,
             'label': 'Auto Swap',
             'default': False,
             'help': 'Automatically Swap all faces using selected Source Faces/Embeddings when loading an video/image file'
         },
-    },
-    'Best Swap': {
         'SwapOnlyBestMatchEnableToggle': {
-            'level': 3,
+            'level': 1,
             'label': 'Swap only best match',
             'default': False,           
             'help': 'only swap highest face match per face (not every match above treshold)'
+        },
+        'MaxDFMModelsSlider':{
+            'level': 1,
+            'label': 'Maximum DFM Models to use',
+            'min_value': '1',
+            'max_value': '5',
+            'default': '1',
+            'step': 1,
+            'help': "Set the maximum number of DFM Models to keep in memory at a time. Set this based on your GPU's VRAM",
         }
     },
     'Detectors': {
+        'RecognitionModelSelection': {
+            'level': 1,
+            'label': 'Recognition Model',
+            'options': ['Inswapper128ArcFace', 'SimSwapArcFace'],
+            'default': 'Inswapper128ArcFace',
+            'help': 'Choose the ArcFace model to be used for comparing the similarity of faces.'
+        },
+        'SimilarityTypeSelection': {
+            'level': 1,
+            'label': 'Swapping Similarity Type',
+            'options': ['Opal', 'Pearl', 'Optimal'],
+            'default': 'Opal',
+            'help': 'Choose the type of similarity calculation for face detection and matching during the face swapping process.'
+        },
         'DetectorModelSelection': {
             'level': 1,
             'label': 'Face Detect Model',
@@ -97,7 +116,6 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'default': '2',
             'step': 1,     
             'help': 'Set the maximum number of faces to detect in a frame'
-   
         },
         'AutoRotationToggle': {
             'level': 1,
@@ -169,17 +187,6 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'help': 'Draw bounding boxes to all detected faces in the frame'
         }
     },
-    'DFM Settings':{
-        'MaxDFMModelsSlider':{
-            'level': 1,
-            'label': 'Maximum DFM Models to use',
-            'min_value': '1',
-            'max_value': '5',
-            'default': '1',
-            'step': 1,
-            'help': "Set the maximum number of DFM Models to keep in memory at a time. Set this based on your GPU's VRAM",
-        }
-    },
     'Frame Enhancer':{
         'FrameEnhancerEnableToggle':{
             'level': 1,
@@ -211,10 +218,8 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'level': 1,
             'label': 'Frame Downscale to 1920*1080',
             'default': False,
-            #'parentToggle': 'FrameEnhancerEnableToggle',
-            #'requiredToggleValue': True,
             'help': 'Select to downscale the video to 1920*1080'
-        },
+        }
     },
     'Webcam Settings': {
         'WebcamMaxNoSelection': {
@@ -244,7 +249,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'options': ['23', '30', '60'],
             'default': '30',
             'help': 'Set the maximum frames per second (FPS) for webcam input.'
-        },
+        }
     },
     'Virtual Camera': {
         'SendVirtCamFramesEnableToggle': {
@@ -264,23 +269,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'SendVirtCamFramesEnableToggle',
             'requiredToggleValue': True,
             'exec_function_args': [],
-        },
-    },
-    'Face Recognition': {
-        'RecognitionModelSelection': {
-            'level': 1,
-            'label': 'Recognition Model',
-            'options': ['Inswapper128ArcFace', 'SimSwapArcFace'],
-            'default': 'Inswapper128ArcFace',
-            'help': 'Choose the ArcFace model to be used for comparing the similarity of faces.'
-        },
-        'SimilarityTypeSelection': {
-            'level': 1,
-            'label': 'Swapping Similarity Type',
-            'options': ['Opal', 'Pearl', 'Optimal'],
-            'default': 'Opal',
-            'help': 'Choose the type of similarity calculation for face detection and matching during the face swapping process.'
-        },
+        }
     },
     'Embedding Merge Method':{
         'EmbMergeMethodSelection':{
@@ -303,7 +292,7 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Input Faces Include Subfolders',
             'default': False,
             'help': 'Include all files from Subfolders when choosing Input Faces Folder'
-        },
+        }
     }
 }
 

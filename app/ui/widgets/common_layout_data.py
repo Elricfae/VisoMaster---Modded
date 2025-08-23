@@ -154,7 +154,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'level': 3,
             'label': 'Expression Friendly Factor Eyes',
             'min_value': '0.0',
-            'max_value': '1.0',
+            'max_value': '2.0',
             'default': '1.0',
             'decimals': 1,
             'step': 0.1,
@@ -226,7 +226,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'level': 3,
             'label': 'Expression Friendly Factor Lips',
             'min_value': '0.0',
-            'max_value': '1.0',
+            'max_value': '2.0',
             'default': '1.0',
             'decimals': 1,
             'step': 0.1,
@@ -273,7 +273,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'FaceExpressionNormalizeLipsEnableToggleBoth & FaceExpressionEnableToggleBoth & FaceExpressionLipsToggle',
             'requiredToggleValue': True,
             'help': 'Threshold value for Normalize Lips.'
-        },        
+        }        
     },
     'ReF-LDM Denoiser': {
         'ReferenceKVTensorsSelection': {
@@ -282,7 +282,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Reference K/V Tensors',
             'control_name': 'ReferenceKVTensorsSelection',
             'options': [], # Will be populated by _populate_reference_kv_tensors
-            'default': "", # Or a default filename if applicable
+            'default': '', # Or a default filename if applicable
             # Add any 'condition_control' or 'parentToggle' if needed
             'help': 'Select a Reference K/V Tensor file (*.pt). Files must be in "model_assets/reference_kv_data/".',
             'exec_function': lambda mw, val: mw.handle_reference_kv_file_change(val), # Trigger loading on UI change
@@ -319,8 +319,8 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'widget_type': 'SelectionBox',
             'label': 'Denoiser Mode (Before)',
             'control_name': 'DenoiserModeSelectionBefore',
-            'options': ["Single Step (Fast)", "Full Restore (DDIM)"],
-            'default': "Single Step (Fast)",
+            'options': ['Single Step (Fast)', 'Full Restore (DDIM)'],
+            'default': 'Single Step (Fast)',
             'parentToggle': 'DenoiserUNetEnableBeforeRestorersToggle',
             'requiredToggleValue': True,
             'help': 'Denoising mode for the pass before restorers. Single Step is generally faster.'
@@ -334,7 +334,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'DenoiserUNetEnableBeforeRestorersToggle',
             'requiredToggleValue': True,
             'parentSelection': 'DenoiserModeSelectionBefore',
-            'requiredSelectionValue': "Single Step (Fast)",
+            'requiredSelectionValue': 'Single Step (Fast)',
             'help': 'Timestep for single-step denoising (Before Restorers). Lower values mean less noise added/removed.'
         },
         'DenoiserDDIMStepsSliderBefore': {
@@ -346,7 +346,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'DenoiserUNetEnableBeforeRestorersToggle',
             'requiredToggleValue': True,
             'parentSelection': 'DenoiserModeSelectionBefore',
-            'requiredSelectionValue': "Full Restore (DDIM)",
+            'requiredSelectionValue': 'Full Restore (DDIM)',
             'help': "Number of DDIM steps for full restoration (Before Restorers). Higher = more detail, slower."
         },
         'DenoiserCFGScaleDecimalSliderBefore': {
@@ -358,27 +358,27 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'DenoiserUNetEnableBeforeRestorersToggle',
             'requiredToggleValue': True,
             'parentSelection': 'DenoiserModeSelectionBefore',
-            'requiredSelectionValue': "Full Restore (DDIM)",
+            'requiredSelectionValue': 'Full Restore (DDIM)',
             'help': "Classifier-Free Guidance scale for DDIM (Before Restorers). Higher = stronger adherence to K/V."
         },
-        'DenoiserAfterFirstRestorerToggle': {
+        'DenoiserAfterFirstRestorersToggle': {
             'level': 1,
             'widget_type': 'ToggleButton',
-            'label': 'Enable Denoiser After first Restorer',
-            'control_name': 'DenoiserAfterFirstRestorerToggle',
+            'label': 'Enable Denoiser After first Restorers',
+            'control_name': 'DenoiserAfterFirstRestorersToggle',
             'default': False,
             'help': 'Apply the UNet Denoiser again after first restorer have been applied. Uses the same UNet model and step settings.',
             'exec_function': control_actions.handle_denoiser_state_change,
-            'exec_function_args': ['DenoiserAfterFirstRestorerToggle'],
+            'exec_function_args': ['DenoiserAfterFirstRestorersToggle'],
         },
         'DenoiserModeSelectionAfterFirst': {
             'level': 2,
             'widget_type': 'SelectionBox',
             'label': 'Denoiser Mode (After)',
             'control_name': 'DenoiserModeSelectionAfterFirst',
-            'options': ["Single Step (Fast)", "Full Restore (DDIM)"],
-            'default': "Single Step (Fast)",
-            'parentToggle': 'DenoiserAfterFirstRestorerToggle',
+            'options': ['Single Step (Fast)', 'Full Restore (DDIM)'],
+            'default': 'Single Step (Fast)',
+            'parentToggle': 'DenoiserAfterFirstRestorersToggle',
             'requiredToggleValue': True,
             'help': 'Denoising mode for the pass after first restorer. Single Step is generally faster.'
         },
@@ -388,10 +388,10 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Single Step Timestep (t) (After)',
             'control_name': 'DenoiserSingleStepTimestepSliderAfterFirst',
             'min_value': '0', 'max_value': '500', 'default': '500', 'step': 1, # Max value was 200
-            'parentToggle': 'DenoiserAfterFirstRestorerToggle',
+            'parentToggle': 'DenoiserAfterFirstRestorersToggle',
             'requiredToggleValue': True,
             'parentSelection': 'DenoiserModeSelectionAfterFirst',
-            'requiredSelectionValue': "Single Step (Fast)",
+            'requiredSelectionValue': 'Single Step (Fast)',
             'help': 'Timestep for single-step denoising (After first Restorer). Lower values mean less noise added/removed.'
         },
         'DenoiserDDIMStepsSliderAfterFirst': {
@@ -400,10 +400,10 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'DDIM Steps (After First)',
             'control_name': 'DenoiserDDIMStepsSliderAfterFirst',
             'min_value': '5', 'max_value': '50', 'default': '5', 'step': 1,
-            'parentToggle': 'DenoiserAfterFirstRestorerToggle',
+            'parentToggle': 'DenoiserAfterFirstRestorersToggle',
             'requiredToggleValue': True,
             'parentSelection': 'DenoiserModeSelectionAfterFirst',
-            'requiredSelectionValue': "Full Restore (DDIM)",
+            'requiredSelectionValue': 'Full Restore (DDIM)',
             'help': "Number of DDIM steps for full restoration (After First Restorer). Higher = more detail, slower."
         },
         'DenoiserCFGScaleDecimalSliderAfterFirst': {
@@ -412,10 +412,10 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'CFG Scale (After First)',
             'control_name': 'DenoiserCFGScaleDecimalSliderAfterFirst',
             'min_value': '0.0', 'max_value': '10.0', 'default': '1.0', 'step': 0.1, 'decimals': 1,
-            'parentToggle': 'DenoiserAfterFirstRestorerToggle',
+            'parentToggle': 'DenoiserAfterFirstRestorersToggle',
             'requiredToggleValue': True,
             'parentSelection': 'DenoiserModeSelectionAfterFirst',
-            'requiredSelectionValue': "Full Restore (DDIM)",
+            'requiredSelectionValue': 'Full Restore (DDIM)',
             'help': "Classifier-Free Guidance scale for DDIM (After First Restorer). Higher = stronger adherence to K/V."
         },
         'DenoiserAfterRestorersToggle': {
@@ -426,15 +426,15 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'default': False,
             'help': 'Apply the UNet Denoiser again after face restorers have been applied. Uses the same UNet model and step settings.',
             'exec_function': control_actions.handle_denoiser_state_change,
-            'exec_function_args': ['DenoiserAfterRestorerToggle'],
+            'exec_function_args': ['DenoiserAfterRestorersToggle'],
         },
         'DenoiserModeSelectionAfter': {
             'level': 2,
             'widget_type': 'SelectionBox',
             'label': 'Denoiser Mode (After)',
             'control_name': 'DenoiserModeSelectionAfter',
-            'options': ["Single Step (Fast)", "Full Restore (DDIM)"],
-            'default': "Single Step (Fast)",
+            'options': ['Single Step (Fast)', 'Full Restore (DDIM)'],
+            'default': 'Single Step (Fast)',
             'parentToggle': 'DenoiserAfterRestorersToggle',
             'requiredToggleValue': True,
             'help': 'Denoising mode for the pass after restorers. Single Step is generally faster.'
@@ -448,7 +448,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'DenoiserAfterRestorersToggle',
             'requiredToggleValue': True,
             'parentSelection': 'DenoiserModeSelectionAfter',
-            'requiredSelectionValue': "Single Step (Fast)",
+            'requiredSelectionValue': 'Single Step (Fast)',
             'help': 'Timestep for single-step denoising (After Restorers). Lower values mean less noise added/removed.'
         },
         'DenoiserDDIMStepsSliderAfter': {
@@ -460,7 +460,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'DenoiserAfterRestorersToggle',
             'requiredToggleValue': True,
             'parentSelection': 'DenoiserModeSelectionAfter',
-            'requiredSelectionValue': "Full Restore (DDIM)",
+            'requiredSelectionValue': 'Full Restore (DDIM)',
             'help': "Number of DDIM steps for full restoration (After Restorers). Higher = more detail, slower."
         },
         'DenoiserCFGScaleDecimalSliderAfter': {
@@ -472,7 +472,7 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'DenoiserAfterRestorersToggle',
             'requiredToggleValue': True,
             'parentSelection': 'DenoiserModeSelectionAfter',
-            'requiredSelectionValue': "Full Restore (DDIM)",
+            'requiredSelectionValue': 'Full Restore (DDIM)',
             'help': "Classifier-Free Guidance scale for DDIM (After Restorers). Higher = stronger adherence to K/V."
         }
     }

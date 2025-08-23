@@ -136,172 +136,6 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'FaceLikenessEnableToggle',
             'requiredToggleValue': True,
             'help': 'Determines the factor of likeness between the source and assigned faces.'
-        },
-        'AutoColorEnableToggle': {
-            'level': 1,
-            'label': 'AutoColor Transfer',
-            'default': False,
-            'help': 'Enable AutoColor Transfer: 1. Hans Test without mask, 2. Hans Test with mask, 3. DFL Method without mask, 4. DFL Original Method.'
-        },
-        'AutoColorTransferTypeSelection':{
-            'level': 2,
-            'label': 'Transfer Type',
-            'options': ['Test', 'Test_Mask', 'DFL_Test', 'DFL_Orig'],
-            'default': 'DFL_Orig',
-            'parentToggle': 'AutoColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Select the AutoColor transfer method type.'
-        },
-        'AutoColorBlendAmountSlider': {
-            'level': 2,
-            'label': 'Blend Amount',
-            'min_value': '0',
-            'max_value': '100',
-            'default': '95',
-            'step': 5,
-            'parentToggle': 'AutoColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Adjust the blend value.'
-        },
-        'ColorEnableToggle': {
-            'level': 1,
-            'label': 'Color Adjustments',
-            'default': False,
-            'help': 'Fine-tune the RGB color values of the swap.'
-        },
-        'ColorRedSlider': {
-            'level': 1,
-            'label': 'Red',
-            'min_value': '-100',
-            'max_value': '100',
-            'default': '0',
-            'step': 1,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Red color adjustments'
-        },
-        'ColorGreenSlider': {
-            'level': 1,
-            'label': 'Green',
-            'min_value': '-100',
-            'max_value': '100',
-            'default': '0',
-            'step': 1,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Green color adjustments'
-        },
-        'ColorBlueSlider': {
-            'level': 1,
-            'label': 'Blue',
-            'min_value': '-100',
-            'max_value': '100',
-            'default': '0',
-            'step': 1,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Blue color adjustments'
-        },
-        'ColorBrightnessDecimalSlider': {
-            'level': 1,
-            'label': 'Brightness',
-            'min_value': '0.00',
-            'max_value': '2.00',
-            'default': '1.00',
-            'step': 0.01,
-            'decimals': 2,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Changes the Brightness.'
-        },
-        'ColorContrastDecimalSlider': {
-            'level': 1,
-            'label': 'Contrast',
-            'min_value': '0.00',
-            'max_value': '2.00',
-            'default': '1.00',
-            'step': 0.01,
-            'decimals': 2,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Changes the Contrast.'
-        },
-        'ColorSaturationDecimalSlider': {
-            'level': 1,
-            'label': 'Saturation',
-            'min_value': '0.00',
-            'max_value': '2.00',
-            'default': '1.00',
-            'step': 0.01,
-            'decimals': 2,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Changes the Saturation.'
-        },
-        'ColorSharpnessDecimalSlider': {
-            'level': 1,
-            'label': 'Sharpness',
-            'min_value': '0.0',
-            'max_value': '2.0',
-            'default': '1.0',
-            'step': 0.1,
-            'decimals': 1,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Changes the Sharpness.'
-        },
-        'ColorHueDecimalSlider': {
-            'level': 1,
-            'label': 'Hue',
-            'min_value': '-0.50',
-            'max_value': '0.50',
-            'default': '0.00',
-            'step': 0.01,
-            'decimals': 2,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Changes the Hue.'
-        },
-        'ColorGammaDecimalSlider': {
-            'level': 1,
-            'label': 'Gamma',
-            'min_value': '0.00',
-            'max_value': '2.00',
-            'default': '1.00',
-            'step': 0.01,
-            'decimals': 2,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Changes the Gamma.'
-        },
-        'ColorNoiseDecimalSlider': {
-            'level': 1,
-            'label': 'Noise',
-            'min_value': '0.0',
-            'max_value': '20.0',
-            'default': '0.0',
-            'step': 0.5,
-            'decimals': 1,
-            'parentToggle': 'ColorEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Add noise to swapped face.'
-        },
-        'JPEGCompressionEnableToggle': {
-            'level': 1,
-            'label': 'JPEG Compression',
-            'default': False,
-            'help': 'Apply JPEG Compression to the swapped face to make output more realistic',
-        },
-        'JPEGCompressionAmountSlider': {
-            'level': 2,
-            'label': 'Compression',
-            'min_value': '1',
-            'max_value': '100',
-            'default': '50',
-            'step': 1,
-            'parentToggle': 'JPEGCompressionEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Adjust the JPEG Compression amount'
         }
     },
     'Face Mask':{
@@ -470,6 +304,34 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'DFLXSeg2EnableToggle',
             'requiredToggleValue': True,
             'help': 'Grow Lower Lip Region (uses Faceparser on swap)'
+        }
+    },
+    'Textures and color':{
+        'AutoColorEnableToggle': {
+            'level': 1,
+            'label': 'AutoColor Transfer',
+            'default': False,
+            'help': 'Enable AutoColor Transfer: 1. Hans Test without mask, 2. Hans Test with mask, 3. DFL Method without mask, 4. DFL Original Method.'
+        },
+        'AutoColorTransferTypeSelection':{
+            'level': 2,
+            'label': 'Transfer Type',
+            'options': ['Test', 'Test_Mask', 'DFL_Test', 'DFL_Orig'],
+            'default': 'DFL_Orig',
+            'parentToggle': 'AutoColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Select the AutoColor transfer method type.'
+        },
+        'AutoColorBlendAmountSlider': {
+            'level': 2,
+            'label': 'Blend Amount',
+            'min_value': '0',
+            'max_value': '100',
+            'default': '95',
+            'step': 5,
+            'parentToggle': 'AutoColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Adjust the blend value.'
         },
         'TransferTextureEnableToggle': {
             'level': 1,
@@ -630,7 +492,7 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'TransferTextureEnableToggle',
             'requiredToggleValue': True,            
             'help': 'Exclude Faceparts from Texture Transfere and uses the original Swap there. Combineable with VGG Mask'
-        }, 
+        },
         'FaceParserTextureSlider': {
             'level': 3,
             'label': 'Face (is also Blend value)',
@@ -760,6 +622,137 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
             'requiredToggleValue': True,
             'help': 'Background reduce based on faceparser model on original face'
         },
+        'ColorEnableToggle': {
+            'level': 1,
+            'label': 'Color Adjustments',
+            'default': False,
+            'help': 'Fine-tune the RGB color values of the swap.'
+        },
+        'ColorRedSlider': {
+            'level': 1,
+            'label': 'Red',
+            'min_value': '-100',
+            'max_value': '100',
+            'default': '0',
+            'step': 1,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Red color adjustments'
+        },
+        'ColorGreenSlider': {
+            'level': 1,
+            'label': 'Green',
+            'min_value': '-100',
+            'max_value': '100',
+            'default': '0',
+            'step': 1,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Green color adjustments'
+        },
+        'ColorBlueSlider': {
+            'level': 1,
+            'label': 'Blue',
+            'min_value': '-100',
+            'max_value': '100',
+            'default': '0',
+            'step': 1,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Blue color adjustments'
+        },
+        'ColorBrightnessDecimalSlider': {
+            'level': 1,
+            'label': 'Brightness',
+            'min_value': '0.00',
+            'max_value': '2.00',
+            'default': '1.00',
+            'step': 0.01,
+            'decimals': 2,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Changes the Brightness.'
+        },
+        'ColorContrastDecimalSlider': {
+            'level': 1,
+            'label': 'Contrast',
+            'min_value': '0.00',
+            'max_value': '2.00',
+            'default': '1.00',
+            'step': 0.01,
+            'decimals': 2,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Changes the Contrast.'
+        },
+        'ColorSaturationDecimalSlider': {
+            'level': 1,
+            'label': 'Saturation',
+            'min_value': '0.00',
+            'max_value': '2.00',
+            'default': '1.00',
+            'step': 0.01,
+            'decimals': 2,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Changes the Saturation.'
+        },
+        'ColorSharpnessDecimalSlider': {
+            'level': 1,
+            'label': 'Sharpness',
+            'min_value': '0.0',
+            'max_value': '2.0',
+            'default': '1.0',
+            'step': 0.1,
+            'decimals': 1,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Changes the Sharpness.'
+        },
+        'ColorHueDecimalSlider': {
+            'level': 1,
+            'label': 'Hue',
+            'min_value': '-0.50',
+            'max_value': '0.50',
+            'default': '0.00',
+            'step': 0.01,
+            'decimals': 2,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Changes the Hue.'
+        },
+        'ColorGammaDecimalSlider': {
+            'level': 1,
+            'label': 'Gamma',
+            'min_value': '0.00',
+            'max_value': '2.00',
+            'default': '1.00',
+            'step': 0.01,
+            'decimals': 2,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Changes the Gamma.'
+        },
+        'ColorNoiseDecimalSlider': {
+            'level': 1,
+            'label': 'Noise',
+            'min_value': '0.0',
+            'max_value': '20.0',
+            'default': '0.0',
+            'step': 0.5,
+            'decimals': 1,
+            'parentToggle': 'ColorEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Add noise to swapped face.'
+        }
+    },
+    'Face parsers':{
+        'MouthParserInsideToggle': {
+            'level': 1,
+            'label': 'Mouth Inside toggle',
+            'default': True,
+            'help': 'Replace the inside of the mouth of the swapped face with the original mouth.'
+        },
         'FaceParserEnableToggle': {
             'level': 1,
             'label': 'Face Parser Mask',
@@ -853,14 +846,6 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'FaceParserEnableToggle',
             'requiredToggleValue': True,
             'help': 'Adjust the size of the Mask. Mast the inside of the mouth, including the tongue.'
-        },
-        'MouthParserInsideToggle': {
-            'level': 2,
-            'label': 'Mouth Inside toggle',
-            'default': True,
-            'parentToggle': 'FaceParserEnableToggle',
-            'requiredToggleValue': True,
-            'help': 'Mask the inside of the mouth of the swapped face.'
         },
         'UpperLipParserSlider': {
             'level': 2,
@@ -1072,6 +1057,23 @@ SWAPPER_LAYOUT_DATA: LayoutDictTypes = {
             'default': '0',
             'step': 1,
             'help': 'Combined masks blending distance. It is not applied to the border masks.'
-        },        
-    },
+        }, 
+        'JPEGCompressionEnableToggle': {
+            'level': 1,
+            'label': 'JPEG Compression',
+            'default': False,
+            'help': 'Apply JPEG Compression to the swapped face to make output more realistic',
+        },
+        'JPEGCompressionAmountSlider': {
+            'level': 2,
+            'label': 'Compression',
+            'min_value': '1',
+            'max_value': '100',
+            'default': '50',
+            'step': 1,
+            'parentToggle': 'JPEGCompressionEnableToggle',
+            'requiredToggleValue': True,
+            'help': 'Adjust the JPEG Compression amount'
+        }
+    }
 }

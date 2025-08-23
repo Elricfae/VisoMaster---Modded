@@ -87,7 +87,7 @@ def handle_denoiser_state_change(main_window: 'MainWindow', new_value_of_toggle_
     # Determine the state of denoisers *as they were* before this change
     # main_window.control still holds the old values for all controls at this point within exec_function
     old_before_enabled = main_window.control.get('DenoiserUNetEnableBeforeRestorersToggle', False)
-    old_after_first_enabled = main_window.control.get('DenoiserAfterFirstRestorerToggle', False)
+    old_after_first_enabled = main_window.control.get('DenoiserAfterFirstRestorersToggle', False)
     old_after_enabled = main_window.control.get('DenoiserAfterRestorersToggle', False)
     denoiser_was_active = old_before_enabled or old_after_first_enabled or old_after_enabled
 
@@ -98,7 +98,7 @@ def handle_denoiser_state_change(main_window: 'MainWindow', new_value_of_toggle_
     
     if control_name_that_changed == 'DenoiserUNetEnableBeforeRestorersToggle':
         is_now_before_enabled = new_value_of_toggle_that_just_changed
-    elif control_name_that_changed == 'DenoiserAfterFirstRestorerToggle':
+    elif control_name_that_changed == 'DenoiserAfterFirstRestorersToggle':
         is_now_after_first_enabled = new_value_of_toggle_that_just_changed
     elif control_name_that_changed == 'DenoiserAfterRestorersToggle':
         is_now_after_enabled = new_value_of_toggle_that_just_changed
@@ -111,7 +111,7 @@ def handle_denoiser_state_change(main_window: 'MainWindow', new_value_of_toggle_
         pass_suffix_to_update = None
         if control_name_that_changed == 'DenoiserUNetEnableBeforeRestorersToggle' and new_value_of_toggle_that_just_changed:
             pass_suffix_to_update = "Before"
-        elif control_name_that_changed == 'DenoiserAfterFirstRestorerToggle' and new_value_of_toggle_that_just_changed:
+        elif control_name_that_changed == 'DenoiserAfterFirstRestorersToggle' and new_value_of_toggle_that_just_changed:
             pass_suffix_to_update = "AfterFirst"
         elif control_name_that_changed == 'DenoiserAfterRestorersToggle' and new_value_of_toggle_that_just_changed:
             pass_suffix_to_update = "After"

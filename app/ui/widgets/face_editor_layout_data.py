@@ -6,7 +6,7 @@ FACE_EDITOR_LAYOUT_DATA: LayoutDictTypes = {
             'level': 1,
             'label': 'Crop Scale',
             'min_value': '1.50',
-            'max_value': '4.00',
+            'max_value': '3.50',
             'default': '2.50',
             'step': 0.05,
             'decimals': 2,
@@ -15,8 +15,8 @@ FACE_EDITOR_LAYOUT_DATA: LayoutDictTypes = {
         'FaceEditorVYRatioDecimalSlider': {
             'level': 1,
             'label': 'VY Ratio',
-            'min_value': '-0.200',
-            'max_value': '0.200',
+            'min_value': '-0.125',
+            'max_value': '-0.100',
             'default': '-0.125',
             'step': 0.001,
             'decimals': 3,
@@ -27,7 +27,7 @@ FACE_EDITOR_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Blur Amount',
             'min_value': '0',
             'max_value': '100',
-            'default': '5',
+            'default': '0',
             'step': 1,
             'help': 'Blur amount.'
         },
@@ -167,7 +167,7 @@ FACE_EDITOR_LAYOUT_DATA: LayoutDictTypes = {
         'MouthGrinDecimalSlider': {
             'level': 2,
             'label': 'Mouth Grin',
-            'min_value': '0.0',
+            'min_value': '-10.0',
             'max_value': '15.0',
             'default': '0.0',
             'step': 0.1,
@@ -512,6 +512,6 @@ FACE_EDITOR_LAYOUT_DATA: LayoutDictTypes = {
             'parentToggle': 'LipsMakeupEnableToggle',
             'requiredToggleValue': True,
             'help': 'Blend the value: 0.0 represents the original color, 1.0 represents the full target color.'
-        },
+        }
     }
 }

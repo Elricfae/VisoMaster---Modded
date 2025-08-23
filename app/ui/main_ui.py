@@ -382,7 +382,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Frame refresh logic (outside the lock)
         denoiser_enabled_before = self.control.get('DenoiserUNetEnableBeforeRestorersToggle', False)
-        denoiser_enabled_after_first = self.control.get('DenoiserAfterFirstRestorerToggle', False)
+        denoiser_enabled_after_first = self.control.get('DenoiserAfterFirstRestorersToggle', False)
         denoiser_enabled_after = self.control.get('DenoiserAfterRestorersToggle', False)
 
         # Refresh frame if any denoiser is active and K/V selection might have changed its state
