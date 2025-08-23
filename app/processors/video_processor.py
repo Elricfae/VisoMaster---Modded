@@ -693,19 +693,16 @@ class VideoProcessor(QObject):
         args = [
             "ffmpeg",
             "-hide_banner",
-            "-loglevel", "warning",
-
-            # Input 1: Raw video frames from Python via pipe (CPU memory)
+            "-loglevel", "error",
             "-f", "rawvideo",
-            "-pix_fmt", "rgb24", # Pixel format of the data being piped in
-            "-s", f"{frame_width}x{frame_height}", # Resolution of the piped data
+            "-pix_fmt", "rgb24", # Use RGB24 since we process in RGB
+            "-s", f"{frame_width}x{frame_height}",
             "-r", str(self.fps),
-            "-i", "pipe:0",
-
-            # Video Filtergraph
-            # The bgr24 input from pipe will be converted by ffmpeg.
-            # For NVENC, it needs a GPU compatible format like nv12 (8-bit) or p010le (10-bit).
-            # The `format` filter handles CPU-side conversion before hwupload.
+            "-i", "pipe:0", # Read from stdin (pipe:0 is more explicit)
+             # Filter from default version: pad to be divisible by 2, set pixel format for H.264
+            "-vf", f"pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuvj420p",
+            "-c:v", "libx264",
+            "-crf", "18",
         ]
         
         # Consistently output SDR BT.709 as the Python pipeline produces 8-bit SDR frames.
@@ -1070,7 +1067,7 @@ class VideoProcessor(QObject):
             "-map", "0:v:0", # Video from pipe
             "-map", "1:a:0?", # Audio from file (optional)
             # Video Codec & Options (Pad and format for compatibility)
-            "-vf", f"pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p",
+            "-vf", f"pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuvj420p",
             "-c:v", "libx264",
             "-crf", "18",
             # Audio Codec
@@ -1078,9 +1075,8 @@ class VideoProcessor(QObject):
             # Options
             "-shortest", # Stop when shortest input (audio segment) ends
             # Output File
-            
         ]
-        output_pix_fmt = 'yuv420p' # Standard 8-bit SDR
+        output_pix_fmt = 'yuvj420p' # Standard 8-bit SDR
         output_color_trc = 'bt2020-10'
         output_colorspace = 'rgb'
         output_color_primaries = 'bt2020'
@@ -1112,7 +1108,7 @@ class VideoProcessor(QObject):
                 "-color_trc", output_color_trc,
                 "-tag:v", "hvc1",
                 # Output File
-                self.temp_file
+                output_filename
             ])
         else:
             args.extend([
@@ -1132,7 +1128,7 @@ class VideoProcessor(QObject):
                 "-color_trc", output_color_trc,
                 "-tag:v", "hvc1",
                 # Output File
-                self.temp_file
+                output_filename
             ])
         
         try:
