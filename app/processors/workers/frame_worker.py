@@ -1438,11 +1438,7 @@ class FrameWorker(threading.Thread):
         flag_lip_retargeting = parameters['FaceExpressionRetargetingLipsEnableToggleBoth'] 
         lip_retargeting_multiplier = parameters['FaceExpressionRetargetingLipsMultiplierDecimalSliderBoth']
         eyes_normalize_max = parameters['FaceExpressionNormalizeEyesMaxDecimalSliderBoth']
-        
-        flag_relative_motion = True #inf_cfg.flag_relative_motion
-        flag_stitching = True #inf_cfg.flag_stitching
-        flag_pasteback = True #inf_cfg.flag_pasteback
-        flag_do_crop = True #inf_cfg.flag_do_crop
+        flag_relative_motion = parameters['FaceExpressionRelativeToggle']
         
         lip_delta_before_animation, eye_delta_before_animation = None, None
         
@@ -1461,14 +1457,14 @@ class FrameWorker(threading.Thread):
         x_s = faceutil.transform_keypoint(x_s_info)
 
         # let lip-open scalar to be 0 at first
-        if flag_normalize_lip and flag_relative_motion and source_lmk is not None:
+        if flag_normalize_lip and source_lmk is not None:
             c_d_lip_before_animation = [0.]
             combined_lip_ratio_tensor_before_animation = faceutil.calc_combined_lip_ratio(c_d_lip_before_animation, source_lmk, device=self.models_processor.device)
             if combined_lip_ratio_tensor_before_animation[0][0] >= lip_normalize_threshold:
                 lip_delta_before_animation = self.models_processor.lp_retarget_lip(x_s, combined_lip_ratio_tensor_before_animation)
                 
         # Compare eyes close ratio to the normalize slider
-        if flag_normalize_eyes and flag_relative_motion and source_lmk is not None:
+        if flag_normalize_eyes and source_lmk is not None:
             combined_eyes_ratio_tensor_before_animation = None
             c_d_eyes_normalize = c_d_eyes_lst
             eyes_ratio = np.array([c_d_eyes_normalize[0][0]], dtype=np.float32)
@@ -1487,7 +1483,10 @@ class FrameWorker(threading.Thread):
         #Eyes
         if flag_activate_eyes:
             for eyes_idx in [11, 13, 15, 16, 18]:
-                delta_new_eyes[:, eyes_idx, :] = (x_s_info['exp'] + (x_d_i_info['exp'] - 0))[:, eyes_idx, :]
+                if flag_relative_motion:
+                    delta_new_eyes[:, eyes_idx, :] = (x_s_info['exp'] + (x_d_i_info['exp'] - 0))[:, eyes_idx, :]
+                else:
+                    delta_new_eyes[:, eyes_idx, :] = x_d_i_info['exp'][:, eyes_idx, :]
 
             scale_new_eyes = x_s_info['scale']
             R_new_eyes = R_s
@@ -1511,8 +1510,10 @@ class FrameWorker(threading.Thread):
                     combined_eye_ratio_tensor = combined_eye_ratio_tensor * eye_retargeting_multiplier
                 # ∆_eyes,i = R_eyes(x_s; c_s,eyes, c_d,eyes,i)                
                     eyes_delta = self.models_processor.lp_retarget_eye(x_s, combined_eye_ratio_tensor, parameters["FaceEditorTypeSelection"])
-   
-            x_d_i_new_eyes = x_s + (eyes_delta if eyes_delta is not None else 0)
+            if flag_relative_motion:
+                x_d_i_new_eyes = x_s + (eyes_delta if eyes_delta is not None else 0)
+            else:
+                x_d_i_new_eyes = x_d_i_new_eyes + (eyes_delta if eyes_delta is not None else 0)
             x_d_i_new_eyes = self.models_processor.lp_stitching(x_s, x_d_i_new_eyes, parameters["FaceEditorTypeSelection"])
         
         if flag_activate_eyes:
@@ -1521,7 +1522,10 @@ class FrameWorker(threading.Thread):
         #Lips
         if flag_activate_lips:
             for lip_idx in [6, 12, 14, 17, 19, 20]:
-                delta_new_lips[:, lip_idx, :] = (x_s_info['exp'] + (x_d_i_info['exp'] - torch.from_numpy(self.models_processor.lp_lip_array).to(dtype=torch.float32, device=self.models_processor.device)))[:, lip_idx, :]
+                if flag_relative_motion:
+                    delta_new_lips[:, lip_idx, :] = (x_s_info['exp'] + (x_d_i_info['exp'] - torch.from_numpy(self.models_processor.lp_lip_array).to(dtype=torch.float32, device=self.models_processor.device)))[:, lip_idx, :]
+                else:
+                    delta_new_lips[:, lip_idx, :] = x_d_i_info['exp'][:, lip_idx, :]
                 
             scale_new_lips = x_s_info['scale']
             R_new_lips = R_s
@@ -1545,9 +1549,10 @@ class FrameWorker(threading.Thread):
                 combined_lip_ratio_tensor = combined_lip_ratio_tensor * lip_retargeting_multiplier
                 # ∆_lip,i = R_lip(x_s; c_s,lip, c_d,lip,i)
                 lip_delta = self.models_processor.lp_retarget_lip(x_s, combined_lip_ratio_tensor, parameters["FaceEditorTypeSelection"])
-                
-            x_d_i_new_lips = x_s + (lip_delta if lip_delta is not None else 0)
-
+            if flag_relative_motion:
+                x_d_i_new_lips = x_s + (lip_delta if lip_delta is not None else 0)
+            else:
+                x_d_i_new_lips = x_d_i_new_lips + (lip_delta if lip_delta is not None else 0)
             x_d_i_new_lips = self.models_processor.lp_stitching(x_s, x_d_i_new_lips, parameters["FaceEditorTypeSelection"])
         
         if flag_activate_lips:
@@ -1575,12 +1580,9 @@ class FrameWorker(threading.Thread):
             out = v2.functional.affine(out, t.rotation*57.2958, translate=(t.translation[0], t.translation[1]), scale=t.scale, shear=(0.0, 0.0), interpolation=v2.InterpolationMode.BILINEAR, center=(0, 0))
             out = v2.functional.crop(out, 0,0, dsize[0], dsize[1]) # cols, rows
 
-        #out = torch.clamp(torch.mul(out, 255.0), 0, 255).type(torch.float32)
-        img = out                
-        img = torch.mul(img, 255.0)
-        img = torch.clamp(img, 0, 255).type(torch.float32)
+        out = torch.clamp(torch.mul(out, 255.0), 0, 255).type(torch.float32)
 
-        return img
+        return out
 
     def swap_edit_face_core(self, img, kps, parameters, control, **kwargs): # img = RGB
         # Grab 512 face from image and create 256 and 128 copys
