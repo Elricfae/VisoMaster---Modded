@@ -118,6 +118,14 @@ COMMON_LAYOUT_DATA: LayoutDictTypes = {
             'default': False,
             'help': 'Enabled the use of the LivePortrait face expression model to restore facial expressions after swapping.'
         },
+        'FaceExpressionRelativeToggle': {
+            'level': 2,
+            'label': 'Relative',
+            'default': False,
+            'parentToggle': 'FaceExpressionEnableToggleBoth',
+            'requiredToggleValue': True,
+            'help': 'Makes the animation relative to the initial pose of the source image. Can be better for a more natural look.'
+        },
         'FaceExpressionCropScaleDecimalSliderBoth': {
             'level': 2,
             'label': 'Crop Scale',
