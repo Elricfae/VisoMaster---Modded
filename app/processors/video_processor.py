@@ -264,7 +264,7 @@ class VideoProcessor(QObject):
         job_mgr_flag = getattr(self.main_window, 'job_manager_initiated_record', False)
         if self.recording and job_mgr_flag:
             self.triggered_by_job_manager = True
-            #print("[DEBUG] Detected default-style recording initiated by Job Manager.")
+            print("Detected default-style recording initiated by Job Manager.")
         else:
             self.triggered_by_job_manager = False
 
@@ -662,11 +662,11 @@ class VideoProcessor(QObject):
         frame_width_down_mult = frame_width / 1920
           
         if control['FrameEnhancerDownToggle']:
-            if frame_width / frame_height == 16 / 9:
+            if (frame_width / frame_height == 16 / 9) and (frame_width != 1920 or frame_height != 1080):
                 frame_height_down = math.ceil(frame_height / frame_height_down_mult)
                 frame_width_down = math.ceil(frame_width / frame_width_down_mult)
             else:
-                Print('Not 16/9 ratio')
+                print('Not 16/9 ratio or already 1920*1080')
                 
         date_and_time = datetime.now().strftime(r'%Y_%m_%d_%H_%M_%S')
         # Use a temporary directory within the project root
@@ -699,14 +699,14 @@ class VideoProcessor(QObject):
             "-s", f"{frame_width}x{frame_height}",
             "-r", str(self.fps),
             "-i", "pipe:0", # Read from stdin (pipe:0 is more explicit)
-             # Filter from default version: pad to be divisible by 2, set pixel format for H.264
-            "-vf", f"pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuvj420p",
-            "-c:v", "libx264",
-            "-crf", "18",
+            # Filter from default version: pad to be divisible by 2, set pixel format for H.264
+            #"-vf", f"pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuvj420p",
+            #"-c:v", "libx264",
+            #"-crf", "18",
         ]
         
         # Consistently output SDR BT.709 as the Python pipeline produces 8-bit SDR frames.
-        output_pix_fmt = 'yuv420p' # Standard 8-bit SDR
+        output_pix_fmt = 'yuvj420p' # Standard 8-bit SDR
         output_color_trc = 'bt2020-10'
         output_colorspace = 'rgb'
         output_color_primaries = 'bt2020'
@@ -878,10 +878,11 @@ class VideoProcessor(QObject):
                     "-ss", str(self.play_start_time),
                     "-to", str(self.play_end_time),
                     "-i", self.media_path,
-                    "-c", "copy",       # Copy both video (already encoded) and audio
+                    "-c:v", "copy",       # Copy both video (already encoded) and audio
                     "-map", "0:v:0",    # Map video from input 0
                     "-map", "1:a:0?",   # Map audio from input 1 (optional)
                     "-shortest",        # Finish when shortest input ends (should be audio segment)
+                    "-af", "aresample=async=1000",
                     final_file_path]
             try:
                 subprocess.run(args, check=True) # Use check=True to raise error on failure
@@ -1019,24 +1020,34 @@ class VideoProcessor(QObject):
             return False
 
         start_frame, end_frame = self.segments_to_process[self.current_segment_index]
-        start_time_sec = start_frame / self.fps
+        start_time_sec = float(start_frame / float(self.fps))
         # Use end_frame + 1 for duration calc if using -t, or end_frame / fps for -to
         # Let's stick to -ss and -to for consistency with default style where applicable
-        end_time_sec = (end_frame + 1) / self.fps # End time is exclusive in -to? No, ffmpeg docs say -to is inclusive. Use end_frame.
-        end_time_sec = end_frame / self.fps # Let's try end_frame directly for -to
-
+        #end_time_sec = float(end_frame + 1) / float(self.fps)) # End time is exclusive in -to? No, ffmpeg docs say -to is inclusive. Use end_frame.
+        end_time_sec = float(end_frame / float(self.fps)) # Let's try end_frame directly for -to
+        frame_length = end_frame - start_frame
         frame_height, frame_width, _ = self.current_frame.shape
+        
+        # Fix for frame enhancer activated while doing segments
+        if control['FrameEnhancerEnableToggle']:
+            if control['FrameEnhancerTypeSelection'] in ('RealEsrgan-x2-Plus', 'BSRGan-x2'):
+                frame_height = frame_height * 2
+                frame_width = frame_width * 2
+            elif control['FrameEnhancerTypeSelection'] in ('RealEsrgan-x4-Plus', 'BSRGan-x4', 'UltraSharp-x4', 'UltraMix-x4', 'RealEsr-General-x4v3'):
+                frame_height = frame_height * 4
+                frame_width = frame_width * 4
+        
         frame_height_down = frame_height
         frame_width_down = frame_width
         frame_height_down_mult = frame_height / 1080
         frame_width_down_mult = frame_width / 1920
           
         if control['FrameEnhancerDownToggle']:
-            if frame_width / frame_height == 16 / 9:
+            if (frame_width / frame_height == 16 / 9) and (frame_width != 1920 or frame_height != 1080):
                 frame_height_down = math.ceil(frame_height / frame_height_down_mult)
                 frame_width_down = math.ceil(frame_width / frame_width_down_mult)
             else:
-                Print('Not 16/9 ratio')
+                print("Not 16/9 ratio or already 1920*1080")
                 
         segment_num = self.current_segment_index + 1
         print(f"Creating FFmpeg (Segment {segment_num}): Video Dim={frame_width}x{frame_height}, FPS={self.fps}, Output='{output_filename}'")
@@ -1067,14 +1078,13 @@ class VideoProcessor(QObject):
             "-map", "0:v:0", # Video from pipe
             "-map", "1:a:0?", # Audio from file (optional)
             # Video Codec & Options (Pad and format for compatibility)
-            "-vf", f"pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuvj420p",
-            "-c:v", "libx264",
-            "-crf", "18",
+            #"-vf", f"pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuvj420p",
+            #"-c:v", "libx264",
+            #"-crf", "18",
             # Audio Codec
             "-c:a", "copy", # Copy original audio stream segment
             # Options
             "-shortest", # Stop when shortest input (audio segment) ends
-            # Output File
         ]
         output_pix_fmt = 'yuvj420p' # Standard 8-bit SDR
         output_color_trc = 'bt2020-10'
@@ -1509,7 +1519,9 @@ class VideoProcessor(QObject):
                 "-f", "concat",
                 "-safe", "0", # Allow unsafe paths (though we used absolute)
                 "-i", list_file_path,
-                "-c", "copy", # Copy streams directly without re-encoding
+                "-c:v", "copy", # Copy streams directly without re-encoding
+                #"-copyts",
+                "-af", "aresample=async=1000",
                 final_file_path
             ]
             subprocess.run(concat_args, check=True) # check=True raises error on failure
