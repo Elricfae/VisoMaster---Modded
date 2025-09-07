@@ -524,14 +524,14 @@ class FaceEditors:
             out = self.face_parser_makeup_direct_rgb(img=out, parsing=outpred, part=(1, 7, 8, 10), color=color, blend_factor=parameters['FaceMakeupBlendAmountDecimalSlider'])
         
         if parameters['EyesMakeupEnableToggle']:
-            print("eyes")
+            #print("eyes")
             color = [parameters['EyesMakeupRedSlider'], parameters['EyesMakeupGreenSlider'], parameters['EyesMakeupBlueSlider']]
             
             # Ausgangsmaske für Augen (Labels 4 & 5)
             eye_mask = (outpred == 4) | (outpred == 5)  # shape: (512, 512)
-            print("outpred, eye_mask_pre (512,512): ", outpred.shape, eye_mask.shape)
+            #print("outpred, eye_mask_pre (512,512): ", outpred.shape, eye_mask.shape)
             eye_mask = eye_mask.unsqueeze(0).unsqueeze(0).float()  # shape: (1, 1, H, W)
-            print("eye_mask_post (1,1,H,W): ", eye_mask.shape)
+            #print("eye_mask_post (1,1,H,W): ", eye_mask.shape)
 
             # Pupille isolieren: erzeuge kleinere zentrale Maske mit max_pool2d
             pupil_mask = 1 - torch.nn.functional.max_pool2d(1 - eye_mask, kernel_size=5, stride=1, padding=2)

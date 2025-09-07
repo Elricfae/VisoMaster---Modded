@@ -52,6 +52,7 @@ class VideoProcessor(QObject):
         self.threads: Dict[int, threading.Thread] = {}
         self.current_frame: numpy.ndarray = []
         self.virtcam: pyvirtualcam.Camera|None = None
+        self.ffplay_sound_sp = None
         self.recording_sp: subprocess.Popen|None = None # Used by both recording styles
 
         # --- Flags and State for Recording Styles ---
@@ -327,7 +328,8 @@ class VideoProcessor(QObject):
                  print("[WARN] Video source reported invalid FPS, using fallback 30.")
                  fps = 30
             self.fps = fps # Store the determined FPS
-
+        if self.main_window.liveSoundButton.isChecked():
+            self.start_live_sound()
         interval = 1000 / fps if fps > 0 else 33 # Default to ~30fps if calculation fails
         # Apply default 80% interval logic for potentially smoother playback/recording frame feeding
         interval = int(interval * 0.8)
@@ -526,6 +528,9 @@ class VideoProcessor(QObject):
         self.join_and_clear_threads()
         print("Worker threads joined.")
 
+        #Stoping audio
+        self.stop_live_sound()
+        
         # Clear display queues
         self.frames_to_display.clear()
         self.webcam_frames_to_display.queue.clear()
@@ -1624,3 +1629,52 @@ class VideoProcessor(QObject):
         self.frame_display_timer.start(interval)
         self.gpu_memory_update_timer.start(5000)
         self.processing_started_signal.emit()
+        
+    def start_live_sound(self):
+        # Start up audio if requested
+        seek_time = (self.next_frame_to_display)/self.fps
+        fpsorig = self.media_capture.get(cv2.CAP_PROP_FPS)
+        if self.main_window.control['VideoPlaybackCustomFpsToggle'] and not self.recording: # Use custom FPS only for playback
+            fpscust = self.main_window.control['VideoPlaybackCustomFpsSlider']
+        fpsdiv = fpscust / fpsorig
+        if fpsdiv < 0.5: fpsdiv = 0.5
+        args =  ["ffplay",
+                '-vn',
+                '-ss', str(seek_time),
+                '-nodisp',
+                '-stats',
+                '-loglevel',  'quiet',
+                '-sync',  'audio',
+                '-af', f'volume={self.main_window.control["LiveSoundVolumeDecimalSlider"]}, atempo={fpsdiv}',
+                self.media_path]
+
+        self.ffplay_sound_sp = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    def stop_live_sound(self):
+        if self.ffplay_sound_sp:
+            parent_pid = self.ffplay_sound_sp.pid
+
+            try:
+                # Terminate any child processes spawned by ffplay
+                try:
+                    parent_proc = psutil.Process(parent_pid)
+                    children = parent_proc.children(recursive=True)
+                    for child in children:
+                        try:
+                            child.kill()
+                        except psutil.NoSuchProcess:
+                            pass  # The child process has already terminated
+                except psutil.NoSuchProcess:
+                    pass  # The parent process has already terminated
+
+                # Terminate the parent process
+                self.ffplay_sound_sp.terminate()
+                try:
+                    self.ffplay_sound_sp.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    self.ffplay_sound_sp.kill()
+
+            except psutil.NoSuchProcess:
+                pass  # The process no longer exists
+
+            self.ffplay_sound_sp = None

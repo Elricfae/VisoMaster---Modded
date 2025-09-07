@@ -55,6 +55,16 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'step': 1,
             'help': 'Set the maximum FPS of the video when playing'
         },
+        'LiveSoundVolumeDecimalSlider': {
+            'level': 1,
+            'label': 'Audio Playback Volume',
+            'min_value': '0.00',
+            'max_value': '1.00',
+            'default': '1.00',
+            'step': 0.01,
+            'decimals': 2,
+            'help': 'Set the playback audio of the audio, when Live Sound is enabled'
+        },
         'AutoSwapToggle': {
             'level': 1,
             'label': 'Auto Swap',

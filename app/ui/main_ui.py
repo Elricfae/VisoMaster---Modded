@@ -156,6 +156,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         video_slider_event_filter = VideoSeekSliderEventFilter(self, self.videoSeekSlider)
         self.videoSeekSlider.installEventFilter(video_slider_event_filter)
+        # Audio toggle
+        self.liveSoundButton.toggled.connect(partial(video_control_actions.toggle_live_sound, self))
+
         self.videoSeekSlider.valueChanged.connect(partial(video_control_actions.on_change_video_seek_slider, self))
         self.videoSeekSlider.sliderPressed.connect(partial(video_control_actions.on_slider_pressed, self))
         self.videoSeekSlider.sliderReleased.connect(partial(video_control_actions.on_slider_released, self))

@@ -544,7 +544,17 @@ def reset_media_buttons(main_window: 'MainWindow'):
     set_play_button_icon(main_window)
     set_record_button_icon(main_window)
 
+def toggle_live_sound(main_window: 'MainWindow', toggle_value: bool):
+    video_processor = main_window.video_processor
+    was_processing = video_processor.processing
 
+    # If the video was playing, then stop and start it again to enable the audio
+    # Otherwise, just the toggle value so that the next time the play button is hit, it would automatically enable/disable the audio
+    # The play button is clicked twice in the below block to simulate the above mentioned behaviour. It should be changed into a set up in the next refactor
+    if was_processing:
+        main_window.buttonMediaPlay.click()
+        main_window.buttonMediaPlay.click()
+        
 def set_play_button_icon(main_window: 'MainWindow'):
     if main_window.buttonMediaPlay.isChecked(): 
         main_window.buttonMediaPlay.setIcon(QtGui.QIcon(":/media/media/play_on.png"))
