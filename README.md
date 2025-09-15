@@ -1,3 +1,5 @@
+#As of now, the Fusion branch is up to date with the main branch with my changes. I won't update this anymore and focus on the Fusion version.
+
 Base Visomaster used to implement GlatOs denoizer and GFPGAN-1024 mods, Hans's mod (with some adjustements) and Alex's Job manager feature.
 
 Some base functions deleted (Some models, differencing, keypoints adjust, Eyes/Mouth restore → use the faceparser instead, and some other minor stuff i don't remember).
@@ -141,3 +143,4 @@ Liability and Responsibility: We, as the creators and providers of the deep fake
 By using this software, users acknowledge that they have read, understood, and agreed to abide by the above guidelines and disclaimers. We strongly encourage users to approach this technology with caution, integrity, and respect for the well-being and rights of others.
 
 Remember, technology should be used to empower and inspire, not to harm or deceive. Let's strive for ethical and responsible use of deep fake technology for the betterment of society.
+
