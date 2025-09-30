@@ -313,12 +313,6 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'label': 'Input Faces Include Subfolders',
             'default': False,
             'help': 'Include all files from Subfolders when choosing Input Faces Folder'
-        },   
-        'CommandLineDebugEnableToggle': {
-            'level': 1,
-            'label': 'Commandline Infos',
-            'default': False,           
-            'help': 'used restore strenght and needed itterations in Commandline + jpeg/mpeg infos'
         },
         'AutoSaveWorkspaceToggle':{
             'level': 1,
@@ -326,13 +320,18 @@ SETTINGS_LAYOUT_DATA: LayoutDictTypes = {
             'default': False,
             'help': 'Auto Saves Workspace .json in output folder at end of recording (only the status at end of recording)'
         },
-        'DilatationTypeSelection': {
+        'AutoLoadWorkspaceToggle':{
             'level': 1,
-            'label': 'Mask Dilatation Type',
-            'options': ['conv', 'pool', 'iter_pool'],
-            'default': 'conv',
-            'help': 'Max_Pool2d is faster but conv2d is more precise (especially on higher dilatation values)'
-        },         
+            'label': 'Auto Load Last Workspace',
+            'default': False,
+            'help': 'Do not show the "load last workspace" dialog when open then app, always load last workspace.'
+        },   
+        'CommandLineDebugEnableToggle': {
+            'level': 1,
+            'label': 'Commandline Infos',
+            'default': False,           
+            'help': 'used restore strenght and needed itterations in Commandline + jpeg/mpeg infos'
+        }
     },
    'Experimental Settings (very experimental, better don´t touch)': {                          
         'ActivateexperimentalsettingsEnableToggle': {
