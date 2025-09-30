@@ -502,8 +502,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def load_last_workspace(self):
         # Show the load workspace dialog if the file exists
         if Path('last_workspace.json').is_file():
-            load_dialog = widget_components.LoadLastWorkspaceDialog(self)
-            load_dialog.exec_()
+            auto_load_workspace_toggle=save_load_actions.get_auto_load_workspace_toggle(self, 'last_workspace.json')
+            if auto_load_workspace_toggle:
+                save_load_actions.load_saved_workspace(self, 'last_workspace.json')
+            else:
+                load_dialog = widget_components.LoadLastWorkspaceDialog(self)
+                load_dialog.exec_()
             if self.control.get('VR180ModeEnableToggle', False): self.actionVR180Mode.setChecked(True)
             else: self.actionVR180Mode.setChecked(False)
             # Re-populate and set current selection for dynamic widgets like DenoiserUNetModelSelection
@@ -511,7 +515,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self._populate_reference_kv_tensors()
 
     def save_last_workspace(self):
-        pass       
+        pass
 
     @QtCore.Slot(bool)
     def _on_faces_panel_toggled(self, checked: bool):
