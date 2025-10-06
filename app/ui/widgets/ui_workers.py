@@ -208,6 +208,8 @@ class InputFacesLoaderWorker(qtc.QThread):
                 face_kps = kpss_5[0]
             except IndexError:
                 continue
+            except TypeError:
+                continue
             if face_kps.any():
                 face_emb, cropped_img = self.main_window.models_processor.run_recognize_direct(img, face_kps, control['SimilarityTypeSelection'], control['RecognitionModelSelection'])
                 cropped_img = cropped_img.cpu().numpy()
@@ -316,3 +318,4 @@ class FilterWorker(qtc.QThread):
     def stop_thread(self):
         self.quit()
         self.wait()
+
