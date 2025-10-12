@@ -9,6 +9,7 @@ from PySide6 import QtWidgets, QtGui, QtCore
 
 from app.ui.widgets.actions import common_actions as common_widget_actions
 from app.ui.widgets.actions import card_actions
+from app.ui.widgets.actions import filter_actions
 from app.ui.widgets import widget_components
 import app.helpers.miscellaneous as misc_helpers
 from app.ui.widgets import ui_workers
@@ -160,7 +161,13 @@ def select_target_medias(main_window: 'MainWindow', source_type='folder', folder
 
     main_window.video_loader_worker = ui_workers.TargetMediaLoaderWorker(main_window=main_window, folder_name=folder_name, files_list=files_list)
     main_window.video_loader_worker.thumbnail_ready.connect(partial(add_media_thumbnail_to_target_videos_list, main_window))
+    main_window.video_loader_worker.finished.connect(partial(filter_target_videos,main_window))
     main_window.video_loader_worker.start()
+
+@QtCore.Slot()
+def filter_target_videos(main_window):
+    filter_actions.filter_target_videos(main_window)
+    load_target_webcams(main_window)
 
 @QtCore.Slot()
 def load_target_webcams(main_window: 'MainWindow',):
