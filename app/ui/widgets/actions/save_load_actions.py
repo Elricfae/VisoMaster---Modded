@@ -16,6 +16,7 @@ from app.ui.widgets.actions import card_actions
 from app.ui.widgets.actions import list_view_actions
 from app.ui.widgets.actions import video_control_actions
 from app.ui.widgets.actions import layout_actions
+from app.ui.widgets.actions import filter_actions
 from app.ui.widgets import ui_workers
 from app.helpers.typing_helper import ParametersTypes, MarkerTypes
 import app.helpers.miscellaneous as misc_helpers
@@ -328,6 +329,8 @@ def load_saved_workspace(main_window: 'MainWindow', data_filename: str|bool = Fa
             main_window.filterImagesCheckBox.setChecked(window_state.get('filterImagesCheckBox', True))
             main_window.filterVideosCheckBox.setChecked(window_state.get('filterVideosCheckBox', True))
             main_window.filterWebcamsCheckBox.setChecked(window_state.get('filterWebcamsCheckBox', False))
+            filter_actions.filter_target_videos(main_window)
+            list_view_actions.load_target_webcams(main_window)
 
 def save_current_workspace(main_window: 'MainWindow', data_filename:str|bool = False):
     target_faces_data = {}; embeddings_data = {}; input_faces_data = {}
