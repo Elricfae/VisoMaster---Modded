@@ -1,4 +1,26 @@
-# As of now, the Fusion branch is up to date with the main branch with my changes. I won't update this anymore and focus on the Fusion version.
+---
+## 🌐 **Web Interface (Gradio) - NEW!**
+
+This fork now includes a **Gradio-based web interface** for cloud GPU deployment (RunPod, Paperspace, etc.)!
+
+- ✅ No Qt/PySide6 required
+- ✅ Runs headless (no display/VNC needed)
+- ✅ Access via browser at `localhost:7860`
+- ✅ Perfect for cloud GPU services
+
+**Quick Start:**
+```bash
+pip install -r requirements.txt
+python app.py
+```
+
+📖 See [README_GRADIO.md](README_GRADIO.md) for full web interface documentation.
+
+---
+
+# Desktop Version
+
+As of now, the Fusion branch is up to date with the main branch with my changes. I won't update this anymore and focus on the Fusion version.
 
 Base Visomaster used to implement GlatOs denoizer and GFPGAN-1024 mods, Hans's mod (with some adjustements) and Alex's Job manager feature.
 

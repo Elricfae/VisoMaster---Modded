@@ -1,0 +1,44 @@
+# VisoMaster Web Interface Requirements
+# For Gradio-based web deployment
+
+# Core dependencies
+numpy==1.26.4
+opencv-python==4.10.0.84
+scikit-image==0.21.0
+pillow==9.5.0
+onnx==1.16.1
+protobuf==4.23.2
+psutil==6.0.0
+packaging==24.1
+
+# Deep Learning frameworks
+# Install PyTorch with CUDA support separately if needed:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# ONNX Runtime
+# Use GPU version if CUDA is available, otherwise CPU version will be used
+onnxruntime-gpu==1.20.0; platform_system != "Darwin"
+onnxruntime==1.20.0; platform_system == "Darwin"
+
+# Image processing
+kornia>=0.7.0
+
+# Web Interface
+gradio>=4.0.0
+
+# Utilities
+tqdm
+ftfy
+regex
+numexpr
+onnxsim
+requests
+
+# Optional: TensorRT for optimized inference (NVIDIA GPUs only)
+# Uncomment if you have TensorRT installed:
+# tensorrt>=10.0.0
+# tensorrt-cu12_libs>=10.0.0
+# tensorrt-cu12_bindings>=10.0.0
